@@ -1,0 +1,6 @@
+[submodule "module_protocol"]
+	path = module_protocol
+	url = https://github.com/juan0fran/Protocol
+[submodule "module_vitow"]
+	path = module_vitow
+	url = https://github.com/Seitam/VITOW
