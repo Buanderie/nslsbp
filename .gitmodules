@@ -3,4 +3,4 @@
 	url = https://github.com/juan0fran/Protocol
 [submodule "module_vitow"]
 	path = module_vitow
-	url = https://github.com/Seitam/VITOW
+	url = git@github.com:carlesaraguz/VITOW.git
