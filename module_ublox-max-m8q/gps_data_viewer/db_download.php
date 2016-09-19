@@ -18,4 +18,8 @@
 
 	// Disconnecting db
     $db->close();
+    
+    // Converting to JSON format
+    $json = json_encode($gps);
+    echo $json;
 ?>
