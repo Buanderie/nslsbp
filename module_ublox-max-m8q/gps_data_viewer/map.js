@@ -1,13 +1,14 @@
 /* Scripts used in map.html */
 var last_date = 0;
-// var cmplt_path = new Array();
-var cmplt_path = [
-            {lat: 37.772, lng: -122.214},
-            {lat: 21.291, lng: -157.821},
-            {lat: -18.142, lng: 178.431},
-            {lat: -27.467, lng: 153.027}
-];
-var time_line = [1474022404, 1474022405, 1474022406, 1474022407];
+var cmplt_path = new Array();
+var time_line = new Array();
+// var cmplt_path = [
+//             {lat: 37.772, lng: -122.214},
+//             {lat: 21.291, lng: -157.821},
+//             {lat: -18.142, lng: 178.431},
+//             {lat: -27.467, lng: 153.027}
+// ];
+// var time_line = [1474022404, 1474022405, 1474022406, 1474022407];
 var lineCoordinatesPath;
 var map;
 var map_marker;
@@ -35,7 +36,7 @@ function initMap() {
     map_marker.setMap(map);
     lineCoordinatesPath.setMap(map);
 
-    var interval = window.setInterval(redraw, 5000);
+    var interval = window.setInterval(download_data, 5000);
 }
 function redraw() {
     // var waypoints = lineCoordinatesPath.getPath();
@@ -46,29 +47,31 @@ function redraw() {
     // map.setCenter({lat: new_lat, lng: new_lng})
     // map_marker.setPosition({lat: new_lat, lng: new_lng});
 
-
-    // var last_waypoint = cmplt_path[cmplt_path.length - 1];
-    // var new_lat = last_waypoint.lat + 0.1 * Math.random() * (Math.random() > 0.9 ? -1 : 1);
-    // var new_lng = last_waypoint.lng + 0.1 * Math.random() * (Math.random() > 0.9 ? -1 : 1);
-    download_data()
-    cmplt_path.push({lat: new_lat, lng: new_lng});
-    lineCoordinatesPath.setPath(cmplt_path);
-    map.setCenter({lat: new_lat, lng: new_lng})
-    map_marker.setPosition({lat: new_lat, lng: new_lng});
+    if(cmplt_path.length > 0) {
+        console.log("DATA");
+        lineCoordinatesPath.setPath(cmplt_path);
+        map.setCenter({lat: cmplt_path[cmplt_path.length-1].lat, lng: cmplt_path[cmplt_path.length-1].lng});
+        map_marker.setPosition({lat: cmplt_path[cmplt_path.length-1].lat, lng: cmplt_path[cmplt_path.length-1].lng});
+    } else {
+        console.log("NO DATA");
+        map.setCenter({lat: 41.39, lng: 2.11});
+    }
 
 }
 
 function download_data() {
     $.ajax({
-        url: "db_download.php?date="+time_line[time_line.length - 1],
+        url: "db_download.php?date="+(time_line.length<1 ? 0 : time_line[time_line.length-1]),
         dataType: "text",
         success: function(data) {
             // alert(data);
             var new_data = $.parseJSON(data);
             new_data.forEach(function(pos) {
-                cmplt_path.push({lat: pos[1], lng: pos[2]});
-                time_line.push(new_data[0]);
+                console.log("New data");
+                cmplt_path.push({lat: parseFloat(pos[1]), lng: parseFloat(pos[2])});
+                time_line.push(parseFloat(pos[0]));
             });
+            redraw();
         }
             
     });
