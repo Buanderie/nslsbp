@@ -3,48 +3,24 @@
 <head>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="bbs_styles.css">
     <script src="http://code.jquery.com/jquery-1.11.0.js"></script>
-    <style>
-        body, html { width: 100%; height: 100%; background-color: #7c7c7c; padding: 0; margin: 0; }
-        .frame_table {
-            background-color: #7c7c7c;
-            width: 100%;
-            height: 100%;
-            display: table;
-            border-spacing: 2px;
-        }
-        .frame_row {
-            display: table-row;
-            width: 100%;
-            height: 50%;
-        }
-        .frame_cell {
-            display: table-cell;
-            width: 45%;
-        }
-        iframe {
-            width: 100%;
-            height: 98.5%;
-            border: none;
-            border-radius: 3px;
-        }
-    </style>
 </head>
 <body>
     <div class="frame_table">
-        <div class="frame_row" style="height: 60%">
-            <iframe src="map.html" style="width: 200%"> 
-            </iframe>           
-        </div>
-        <div class="frame_row" style="height: 40%">
-            <div class="frame_cell">
+        <div class="frame_row" style="height: 75%">
+            <div class="frame_cell" style="width: 70%;">
+                <iframe src="map.html"> 
+                </iframe> 
+            </div>
+            <div class="frame_cell" style="width: 30%;">
                 <iframe src="gps.html"> 
                 </iframe> 
             </div>
-            <div class="frame_cell">
-                <iframe src="dbg.html"> 
-                </iframe> 
-            </div>
+        </div>
+        <div class="frame_row" style="height: 25%">
+            <iframe src="dbg.html" style="width: 142.5%"> 
+            </iframe>           
         </div>
     </div>
 </body>

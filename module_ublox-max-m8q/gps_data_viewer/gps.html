@@ -8,6 +8,30 @@
     <script src="gps.js"></script>
 </head>
 <body>
-
+    <div class="table">
+        <div class="table_row table_header">
+            <div class="table_cell table_header" style="text-align:right;">BEACON ID. &#8628;</div>
+            <div class="table_cell table_header">LAST DECODED MESSAGE &#8628;</div>
+            <div class="table_cell table_header">DATA &#8628;</div>
+            <div class="table_cell table_header">UPDATE TIME &#8628;</div>
+        </div>
+        <div class="table_row">
+            <div class="table_cell state_name">MAIN</div>
+            <div id="beacon_morse_str"  class="table_cell" style="text-align: left;">···</div>
+            <div id="beacon_morse_data" class="table_cell" style="text-align: left;">
+                <span class="cmd_arg_label">Temp:</span> <b id="beacon_morse_data_temp">000</b> K;
+                <span class="cmd_arg_label">&nbsp;&mdash;&nbsp; Battery:</span> <b id="beacon_morse_data_soc">00</b> %
+            </div>
+            <div id="beacon_morse_time" class="table_cell state_dark" style="text-align: left;">?? seconds ago</div>
+        </div>
+        <div class="table_row">
+            <div class="table_cell state_name">PELTIER</div>
+            <div id="beacon_peltier_str"  class="table_cell" style="text-align: left;">···</div>
+            <div id="beacon_peltier_data" class="table_cell" style="text-align: left;">
+                <span class="cmd_arg_label">T. Sensor:</span> <b id="beacon_peltier_data_sensor">000</b>
+            </div>
+            <div id="beacon_peltier_time" class="table_cell" style="text-align: left;">?? seconds ago</div>
+        </div>
+    </div>
 </body>
 </html>
