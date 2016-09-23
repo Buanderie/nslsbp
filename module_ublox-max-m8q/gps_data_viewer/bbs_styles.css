@@ -1,0 +1,80 @@
+html, body { height: 100%; margin: 0; padding: 0; }
+
+/* Table properties: *****************************************************************************/
+.table {
+    width: 100%;
+    display: table;
+
+    border-spacing: 4px;
+    border-collapse: separate;
+
+    font-size: 12px;
+    font-weight: 300;
+    color: #ccc;
+
+    line-height: 14px;
+}
+.table_collapse_rows {
+    border-spacing: 0 4px;
+}
+.table_row {
+    display: table-row;
+}
+.table_collapse_rows .table_row {
+    box-shadow: 0 0 6px rgba(0,0,0,.5); /* This doesn't work in Chrome */
+    border-radius: 5px;
+}
+.table_collapse_rows .table_row div:first-child {
+    border-radius: 5px 0 0 5px;
+}
+.table_collapse_rows .table_row div:last-child {
+    border-radius: 0 5px 5px 0;
+}
+.table_cell {
+    padding: 5px;
+    display: table-cell;
+    background-color: #7c7c7c;
+    border-radius: 5px;
+    box-shadow: 0 0 6px rgba(0,0,0,.5);
+    text-align: center;
+    vertical-align: middle;
+}
+.table_collapse_rows .table_cell {
+    background-color: #424242;
+    border-radius: 0;
+    text-shadow: 1px 1px 1px rgba(0,0,0,.5), 0 0 5px rgba(0,0,0,.15);
+    vertical-align: baseline;
+}
+.table_collapse_rows .table_cell:first-child {
+    box-shadow:
+        inset 0px 11px 6px -10px rgba(0,0,0,.4),
+        inset 0px -11px 6px -10px rgba(0,0,0,.4),
+        inset 11px 0px 6px -10px rgba(0,0,0,.4);
+}
+.table_collapse_rows .table_cell {
+    box-shadow:
+        inset 0px 11px 6px -10px rgba(0,0,0,.4),
+        inset 0px -11px 6px -10px rgba(0,0,0,.4);
+}
+.table_collapse_rows .table_cell:last-child {
+    box-shadow:
+        inset 0px 11px 6px -10px rgba(0,0,0,.4),
+        inset 0px -11px 6px -10px rgba(0,0,0,.4),
+        inset -11px 0px 6px -10px rgba(0,0,0,.4);
+}
+.table_collapse_rows .table_cell:last-child {
+    border-right: solid 2px #e9521c;
+}
+.table_collapse_rows .table_cell:first-child {
+    border-left: solid 2px #e9521c;
+}
+.table_header {
+    color: #e9521c;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* jQuery Tabs: **********************************************************************************/
+.ui-tabs .ui-tabs-hide {
+    display: none;
+}
