@@ -36,11 +36,11 @@ iframe {
     border-spacing: 4px;
     border-collapse: separate;
 
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 300;
     color: #ccc;
 
-    line-height: 14px;
+    line-height: 12px;
 }
 .table_collapse_rows {
     border-spacing: 0 4px;
