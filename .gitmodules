@@ -1,6 +1,9 @@
-[submodule "module_protocol"]
-	path = module_protocol
-	url = https://github.com/juan0fran/Protocol
 [submodule "module_vitow"]
 	path = module_vitow
 	url = git@github.com:carlesaraguz/VITOW.git
+[submodule "ublox"]
+	path = module_gps_temp
+	url = git@github.com:juan0fran/ublox.git
+[submodule "cc_beacon"]
+	path = module_beacon
+	url = git@github.com:juan0fran/cc_beacon.git
