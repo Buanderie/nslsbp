@@ -1,5 +1,4 @@
 /* Scripts used in map.html */
-var last_date = 0;
 var cmplt_path = new Array();
 var time_line = new Array();
 // var cmplt_path = [
@@ -21,8 +20,8 @@ $(document).ready(function() {
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-        center: {lat: -27.467, lng: 153.027},
-        zoom: 8
+        center: {lat: 41.39, lng: 2.11},
+        zoom: 6
     });
     lineCoordinatesPath = new google.maps.Polyline({
         path: cmplt_path,
@@ -31,7 +30,7 @@ function initMap() {
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
-    map_marker = new google.maps.Marker({position: {lat: -27.467, lng: 153.027}, map: map});
+    map_marker = new google.maps.Marker({position: {lat: 41.39, lng: 2.11}, map: map});
 
     map_marker.setMap(map);
     lineCoordinatesPath.setMap(map);
@@ -48,10 +47,10 @@ function redraw() {
     // map_marker.setPosition({lat: new_lat, lng: new_lng});
 
     if(cmplt_path.length > 0) {
-        console.log("DATA");
         lineCoordinatesPath.setPath(cmplt_path);
         map.setCenter({lat: cmplt_path[cmplt_path.length-1].lat, lng: cmplt_path[cmplt_path.length-1].lng});
         map_marker.setPosition({lat: cmplt_path[cmplt_path.length-1].lat, lng: cmplt_path[cmplt_path.length-1].lng});
+        update_gps_tables();
     } else {
         console.log("NO DATA");
         map.setCenter({lat: 41.39, lng: 2.11});
@@ -67,7 +66,6 @@ function download_data() {
             // alert(data);
             var new_data = $.parseJSON(data);
             new_data.forEach(function(pos) {
-                console.log("New data");
                 cmplt_path.push({lat: parseFloat(pos[1]), lng: parseFloat(pos[2])});
                 time_line.push(parseFloat(pos[0]));
             });
