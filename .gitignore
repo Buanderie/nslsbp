@@ -33,3 +33,7 @@ TX
 # Debug files
 *.dSYM/
 *.su
+
+# Output files and watermark
+vitow_output
+*.png
