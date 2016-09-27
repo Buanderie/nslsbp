@@ -95,7 +95,7 @@ int main(int argc, char **argv)
                 // sleep(15);
                 // printfd("I'm VITOW (PID: %d) and I will exit now\n", getpid());
                 // return -3;
-                execlp("vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
+                execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 
             } else if(pid_vitow > 0) {
                 /* xLauncher process: ----------------------------------------------------------- */
