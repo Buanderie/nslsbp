@@ -67,6 +67,12 @@ iframe {
     text-align: center;
     vertical-align: middle;
 }
+.table_cell_inactive {
+    padding: 5px;
+    display: table-cell;
+    background-color: transparent;
+    border-radius: 5px;
+}
 .table_collapse_rows .table_cell {
     background-color: #424242;
     border-radius: 0;
