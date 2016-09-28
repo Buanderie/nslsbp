@@ -69,7 +69,7 @@ function download_data() {
                 cmplt_path.push({lat: parseFloat(pos[1]), lng: parseFloat(pos[2])});
                 time_line.push(parseFloat(pos[0]));
             });
-            redraw();
+            if(new_data.length > 0){redraw();}
         }
             
     });
