@@ -41,11 +41,6 @@ int main(int argc, char **argv)
         dup(pipe0[WRITE]);
         close(pipe0[WRITE]);        /* stdout is now redirected to Pipe 0 (W). */
 
-        // buf = 'a';
-        // write(1, &buf, 1);
-        // sleep(15);
-        // fprintf(stderr, "I'm Raspivid (PID: %d) and I will exit now!\n", getpid());
-        // return -1;
         execlp("raspivid", "raspivid", "-t", "0", "-w", "854", "-h", "480", "-b", "750000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
 
     } else if(pid_raspivid > 0) {
@@ -69,14 +64,6 @@ int main(int argc, char **argv)
             close(pipe1[WRITE]);    /* stdout is now redirected to Pipe 1 (W). */
             close(pipe1[READ]);     /* tee does not read from Pipe 1. */
 
-            // read(0, &buf, 1);
-            // fprintf(stderr, "I'm tee (PID: %d) and I just read `%c` from stdin and I will write to stdout\n", getpid(), buf);
-            // sleep(1);
-            // buf++;
-            // write(1, &buf, 1);
-            // sleep(15);
-            // fprintf(stderr, "I'm tee (PID: %d) and I will exit now!\n", getpid());
-            // return -2;
             execlp("tee", "tee", "vitow_input", (char *)NULL);
 
         } else if(pid_tee > 0) {
@@ -90,12 +77,7 @@ int main(int argc, char **argv)
                 close(pipe0[READ]);     /* VITOW does not read from Pipe 0. */
 
                 /* VITOW process: --------------------------------------------------------------- */
-                // read(0, &buf, 1);
-                // printfd("I'm VITOW (PID: %d) and I just read `%c` from stdin and written to stdout.\n", getpid(), buf);
-                // sleep(15);
-                // printfd("I'm VITOW (PID: %d) and I will exit now\n", getpid());
-                // return -3;
-                execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
+                execlp("/home/pi/bbsonn/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 
             } else if(pid_vitow > 0) {
                 /* xLauncher process: ----------------------------------------------------------- */
@@ -103,16 +85,12 @@ int main(int argc, char **argv)
                 close(pipe1[WRITE]);    /* xLauncher does not need to write to Pipe 1. */
                 close(pipe0[READ]);     /* xLauncher does not read from Pipe 0. */
 
-                // printfd("I'm xLauncher (PID: %d) and I read from nowhere\n", getpid());
-                // printfo("PID: %d just returned with retval %d\n", wait(&retval), retval);
-                // printfo("PID: %d just returned with retval %d\n", wait(&retval), retval);
-                // printfo("PID: %d just returned with retval %d\n", wait(&retval), retval);
-
                 printfd("Process `vitow_tx`: %d\n", pid_vitow);
                 printfd("Process `tee`     : %d\n", pid_tee);
                 printfd("Process `raspivid`: %d\n", pid_raspivid);
-                while(1)
-                {
+                send_beacon_msg(PARENT_PROCESS, "Hello");
+                
+                while(1) {
                     pid = wait(&retval);
                     if(pid > 0) {
                         if(pid == pid_vitow) {
