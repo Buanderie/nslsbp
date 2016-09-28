@@ -1,6 +1,7 @@
 /* Scripts used in map.html */
 var cmplt_path = new Array();
-var time_line = new Array();
+var time_line  = new Array();
+var gps_extra  = new Array();
 // var cmplt_path = [
 //             {lat: 37.772, lng: -122.214},
 //             {lat: 21.291, lng: -157.821},
@@ -68,6 +69,8 @@ function download_data() {
             new_data.forEach(function(pos) {
                 cmplt_path.push({lat: parseFloat(pos[1]), lng: parseFloat(pos[2])});
                 time_line.push(parseFloat(pos[0]));
+                gps_extra.push({kph: parseFloat(pos[3]), sea: parseFloat(pos[4]),
+                                geo: parseFloat(pos[5]), course: parseFloat(pos[6])});
             });
             if(new_data.length > 0){redraw();}
         }

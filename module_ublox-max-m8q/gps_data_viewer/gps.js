@@ -11,6 +11,18 @@ function update_gps_tables() {
     cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('gps_lng');
     cell.innerHTML = cmplt_path[cmplt_path.length-1].lng;
 
+    cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('gps_kph');
+    cell.innerHTML = gps_extra[gps_extra.length-1].kph;
+
+    cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('gps_sea');
+    cell.innerHTML = gps_extra[gps_extra.length-1].sea;
+
+    cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('gps_geo');
+    cell.innerHTML = gps_extra[gps_extra.length-1].geo;
+
+    cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('gps_course');
+    cell.innerHTML = gps_extra[gps_extra.length-1].course;
+
     // var tab = top.document.getElementById('gps_frame').contentWindow.document.getElementById('gps_tab');
     // var row = document.createElement("div");
     // row.setAttribute("class", "table_row");
