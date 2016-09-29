@@ -29,6 +29,9 @@
 *.hex
 RX
 TX
+vitow_rx
+vitow_tx
+xlauncher
 
 # Debug files
 *.dSYM/

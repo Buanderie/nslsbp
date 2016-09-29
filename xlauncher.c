@@ -77,7 +77,7 @@ int main(int argc, char **argv)
                 close(pipe0[READ]);     /* VITOW does not read from Pipe 0. */
 
                 /* VITOW process: --------------------------------------------------------------- */
-                execlp("/home/pi/bbsonn/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
+                execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 
             } else if(pid_vitow > 0) {
                 /* xLauncher process: ----------------------------------------------------------- */
@@ -88,34 +88,58 @@ int main(int argc, char **argv)
                 printfd("Process `vitow_tx`: %d\n", pid_vitow);
                 printfd("Process `tee`     : %d\n", pid_tee);
                 printfd("Process `raspivid`: %d\n", pid_raspivid);
-                send_beacon_msg(PARENT_PROCESS, "Hello");
-                
+                send_beacon_msg(PARENT_PROCESS, "All system processes have been started");
+
                 while(1) {
                     pid = wait(&retval);
                     if(pid > 0) {
                         if(pid == pid_vitow) {
                             printfe("Process `vitow_tx` has terminated\n");
+                            send_beacon_msg(PARENT_PROCESS, "Process `vitow_tx` has terminated with error code %d", retval >> 8);
+                            kill(pid_raspivid, SIGINT);
+                            kill(pid_tee, SIGINT);
+                            break;
                         } else if(pid == pid_tee) {
                             printfe("Process `tee` has terminated\n");
+                            send_beacon_msg(PARENT_PROCESS, "Process `tee` has terminated with error code %d", retval >> 8);
+                            kill(pid_raspivid, SIGINT);
+                            kill(pid_vitow, SIGINT);
+                            break;
                         } else if(pid == pid_raspivid) {
                             printfe("Process `raspivid` has terminated\n");
+                            send_beacon_msg(PARENT_PROCESS, "Process `raspivid` has terminated with error code %d", retval >> 8);
+                            kill(pid_tee, SIGINT);
+                            kill(pid_vitow, SIGINT);
+                            break;
                         } else {
                             printfe("An unknown process with PID %d has terminated\n", pid);
                         }
                     } else {
                         break;
                     }
+
                 }
+                send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+                printfe("Exiting now\n");
+            } else {
+                /* Error on fork: */
+                printfe("Error while forking this process (1)\n");
+                send_beacon_msg(PARENT_PROCESS, "System will now reboot");
                 printfe("Exiting now\n");
             }
         } else {
             /* Error on fork: */
-            return -1;
+            printfe("Error while forking this process (2)\n");
+            send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+            printfe("Exiting now\n");
         }
     } else {
         /* Error on fork: */
-        return -1;
+        printfe("Error while forking this process (3)\n");
+        send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+        printfe("Exiting now\n");
     }
+
     return 1;
 }
 

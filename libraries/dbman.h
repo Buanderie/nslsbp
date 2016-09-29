@@ -1,41 +1,32 @@
 /***********************************************************************************************//**
- *  \brief      CC1101 Beacon Handler Wrapper
- *  \details    Provides a single secure function that all processes can use to output messages to
- *              CC1101 beacon (using cc_beacon_iface library) without having to care about errors.
+ *  \brief      Database Manager
+ *  \details    Implements MySQL wrapper functions to be able to save and retrieve beacon data from
+ *              the system databases.
  *  \author     Carles Araguz <carles.araguz@upc.edu>
  *  \version    1.0
- *  \date       28-sep-2016
+ *  \date       29-sep-2016
  *  \copyright  GNU Public License (v3). This files are part of an on-going non-commercial research
  *              project at NanoSat Lab (http://nanosatlab.upc.edu) of the Technical University of
  *              Catalonia - UPC BarcelonaTech. Third-party libraries used in this framework might be
  *              subject to different copyright conditions.
  **************************************************************************************************/
 
-#ifndef __CC_BEACON_IFACE_WRAPPER_
-#define __CC_BEACON_IFACE_WRAPPER_
+#ifndef __DBMAN_H__
+#define __DBMAN_H__
 
 /*** INCLUDES *************************************************************************************/
-#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
 #include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <string.h>
-#include <stdarg.h>
 
-#include "cc_beacon_iface.h"
-
+#include "dbman_credentials.h"  /* Defines DB_USR and DB_PASSWD. */
 
 /*** PARAMETERS ***********************************************************************************/
-#define MSG_LENGTH      100
-#define SOCK_IP_ADDR    "0.0.0.0"
-#define SOCK_PORT       "1000"
+#define DB_SERVER       "192.168.1.100"
+#define DB_DBNAME       "bbs"
+#define DB_TABLE_GPS    "gps"
+#define DB_TABLE_DBG    "dbg"
 
-#define DBG_PURPLE      "\x1b[35;1m"
-#define DBG_NOCOLOR     "\x1b[0m"
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
 
@@ -44,7 +35,6 @@
 /*** TYPEDEFS *************************************************************************************/
 
 /*** FUNCTION HEADERS *****************************************************************************/
-void send_beacon_msg(MsgSource process_id, const char * fmt, ...);
 
 
 #endif
