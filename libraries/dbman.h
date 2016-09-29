@@ -18,11 +18,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <mysql/mysql.h>
 
 #include "dbman_credentials.h"  /* Defines DB_USR and DB_PASSWD. */
 
 /*** PARAMETERS ***********************************************************************************/
-#define DB_SERVER       "192.168.1.100"
+#define DB_HOST         "192.168.1.100"
 #define DB_DBNAME       "barbie_space_explorer"
 #define DB_TABLE_GPS    "gps"
 #define DB_TABLE_DBG    "dbg"

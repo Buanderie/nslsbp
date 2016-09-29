@@ -14,7 +14,7 @@ BEACON_CFLAGS  = -I../module_beacon/cc1101_handler/include -DCC_BEACON_IFACE_WRA
 BEACON_LDFLAGS = -lcc_beacon_iface -L../module_beacon/cc1101_handler/lib
 
 DBMAN_CFLAGS   = -I/usr/local/mysql/include
-DBMAN_LDFLAGS  = -L/usr/local/mysql/lib -lmysqlclient
+DBMAN_LDFLAGS  = -L/usr/local/mysql/lib -lmysqlclient -lpthread
 
 
 
