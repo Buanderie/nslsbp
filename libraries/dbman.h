@@ -23,7 +23,7 @@
 
 /*** PARAMETERS ***********************************************************************************/
 #define DB_SERVER       "192.168.1.100"
-#define DB_DBNAME       "bbs"
+#define DB_DBNAME       "barbie_space_explorer"
 #define DB_TABLE_GPS    "gps"
 #define DB_TABLE_DBG    "dbg"
 
