@@ -10,11 +10,12 @@
 
     // Get last GPS data
     $gps = array();
-    $sql = "SELECT * FROM ".TABLE_GPS." WHERE `time` > {$_GET['date']} ORDER BY `time` ASC";
+    $sql = "SELECT * FROM ".TABLE_GPS." WHERE `time_gps` > {$_GET['date']} ORDER BY `time_gps` ASC";
+    echo($sql);
     $query = $db->query($sql);
     while($data = $db->fetch_array($query)) {
-    	$gps[] = [$data['time'], $data['lat'], $data['lng'], $data['v_kph'],
-                 $data['sea_alt'], $data['geo_alt'], $data['course']];
+    	$gps[] = [$data['id'], $data['time_local'], $data['time_gps'] $data['lat'], $data['lng'], $data['v_kph'],
+                 $data['sea_alt'], $data['geo_alt'], $data['course'], $data['temp']];
     }
 
 	// Disconnecting db

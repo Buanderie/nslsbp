@@ -11,30 +11,38 @@
     $db->connect();
 
     // Create new random GPS data
-    $sql = "SELECT * FROM ".TABLE_GPS." ORDER BY `time` DESC LIMIT 1";
+    $sql = "SELECT * FROM ".TABLE_GPS." ORDER BY `row_id` DESC LIMIT 1";
     $query = $db->query($sql);
     while($data = $db->fetch_array($query)) {
     	$old_data = array(
-            "time" => $data['time'],
+            "time_local" => $data['time_local'],
+            "time_gps" => $data['time_gps'],
             "lat" => $data['lat'],
-            "lng" => $data['lng']
+            "lng" => $data['lng'],
+            "v_kph" => $data['v_kph'],
+            "sea_alt" => $data['sea_alt'],
+            "geo_alt" => $data['geo_alt'],
+            "course" => $data['course'],
+            "temp" => $data['temp']
         );
     }
 
-    $new_data = array(
-		"time" => $old_data['time']+2,
-		"lat" => $old_data['lat']+(2*mt_rand(-1,1)),
-		"lng" => $old_data['lng']+(2*mt_rand(-1,1))
-	);
     for($i=0;$i<MAX;$i++) {
-    	$old_data = $new_data;
     	$new_data = array(
-			"time" => $old_data['time']+2,
-			"lat" => $old_data['lat']+(2*mt_rand(-1,1)),
-			"lng" => $old_data['lng']+(2*mt_rand(-1,1))
-		);
+            "time_local" => $old_data['time_gps']+5,
+            "time_gps" => $old_data['time_gps']+2,
+            "lat" => $old_data['lat']+(2*mt_rand(-1,1)),
+            "lng" => $old_data['lng']+(2*mt_rand(-1,1)),
+            "v_kph" => $old_data['v_kph']+(5*mt_rand(-1,1)),
+            "sea_alt" => $old_data['sea_alt']+(5*mt_rand(-1,1)),
+            "geo_alt" => $old_data['geo_alt']+(3*mt_rand(-1,1)),
+            "course" => $old_data['course'],
+            "temp" => $old_data['temp']+(4*mt_rand(-1,1))
+        );
         $db->query_insert(TABLE_GPS,$new_data);
+        $old_data = $new_data;
     }
+
     echo MAX." rows inserted!";
 
 	// Disconnecting db

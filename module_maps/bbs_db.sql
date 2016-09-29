@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `dbg` (
   `time` int(11) NOT NULL,
-  `message` varchar(500) NOT NULL
+  `message` varchar(150) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -39,16 +39,24 @@ CREATE TABLE IF NOT EXISTS `dbg` (
 
 CREATE TABLE IF NOT EXISTS `gps` (
   `time` int(11) NOT NULL,
-  `lat` float NOT NULL,
-  `lng` float NOT NULL
+  `lat` varchar(30) NOT NULL,
+  `lng` varchar(30) NOT NULL,
+  `v_kph` varchar(30) NOT NULL,
+  `sea_alt` varchar(30) NOT NULL,
+  `geo_alt` varchar(30) NOT NULL,
+  `course` varchar(30) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- --------------------------------------------------------
+
 --
--- Volcado de datos para la tabla `gps`
+-- Estructura de tabla para la tabla `temp`
 --
 
-INSERT INTO `gps` (`time`, `lat`, `lng`) VALUES
-(1474023404, 18.5, 230);
+CREATE TABLE IF NOT EXISTS `temp` (
+  `time` int(11) NOT NULL,
+  `value` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

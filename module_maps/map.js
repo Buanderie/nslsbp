@@ -64,13 +64,13 @@ function download_data() {
         url: "db_download.php?date="+(time_line.length<1 ? 0 : time_line[time_line.length-1]),
         dataType: "text",
         success: function(data) {
-            // alert(data);
             var new_data = $.parseJSON(data);
-            new_data.forEach(function(pos) {
-                cmplt_path.push({lat: parseFloat(pos[1]), lng: parseFloat(pos[2])});
-                time_line.push(parseFloat(pos[0]));
-                gps_extra.push({kph: parseFloat(pos[3]), sea: parseFloat(pos[4]),
-                                geo: parseFloat(pos[5]), course: parseFloat(pos[6])});
+            new_data.forEach(function(gps) {
+                cmplt_path.push({lat: parseFloat(gps[3]), lng: parseFloat(gps[4])});
+                time_line.push(parseFloat(gps[2]));
+                gps_extra.push({time_local: parseFloat(gps[1]), kph: parseFloat(gps[5]), sea: parseFloat(gps[6]),
+                                geo: parseFloat(gps[7]), course: parseFloat(gps[8]),
+                                temp: parseFloat(gps[9])});
             });
             if(new_data.length > 0){redraw();}
         }
