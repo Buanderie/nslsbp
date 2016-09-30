@@ -48,7 +48,14 @@ li .param_value {
     font-weight: 600;
     padding: 18px;
 }
-
+.param_unit {
+    color: #7c7c7c;
+    width: 30px;
+    background: transparent;
+    text-align: center;
+    box-shadow: none;
+    text-shadow: 1px 1px 3px rgba(0,0,0,.5), 0 0 5px rgba(0,0,0,.15);
+}
 /* Index layout style: ***************************************************************************
 .frame_table {
     background-color: #424242;
