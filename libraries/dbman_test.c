@@ -23,7 +23,7 @@
 int main(int argc, char **argv)
 {
     double a, b, c;
-    if(dbman_save_gps_data(time(NULL), time(NULL)+10, "41.3947688", "2.0787279", "0", "100.00", "200.00", "1", "25.00") == 0) {
+    if(dbman_save_gps_data(time(NULL), time(NULL)+10, 41.3947688, 2.0787279, 0.0, 100.00, 200.00, 1.0, 25.00) == 0) {
         printf("GPS data saved successfully\n");
     } else {
         printf("Error saving GPS data\n");

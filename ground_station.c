@@ -14,30 +14,142 @@
 #include "ground_station.h"
 
 /*** GLOBAL VARIABLES *****************************************************************************/
-BeaconMessageHandler beacon_handler;
+static BeaconMessageHandler beacon_handler;
+static bool gs_exit = false;
+static int az, el;
 
 /***********************************************************************************************//**
  * Program entry point
  **************************************************************************************************/
 int main(int argc, char ** argv)
 {
-    unsigned char buf[MSG_LENGTH];
+    char buf[MSG_LENGTH];
     MsgSource process_id;
+    char str0[MSG_LENGTH];
+    char str1[MSG_LENGTH];
+    int hour, minute, second;
+    struct tm * time_fields;
+    time_t time_sbc;
+    time_t time_local;
+    time_t time_gps;
+    int gps_quality, gps_sv;
+    double lat, lng, v_kph, sea_alt, geo_alt, course, temp;
+    pthread_t rotors_th;
 
-    printfd("Ground Station process started\n");
-
+    printfd("Connecting to beacon socket...\n");
     if(BeaconConnect(SOCK_IP_ADDR, SOCK_PORT, &beacon_handler, beacon_receiver) <= 0) {
         printfe("Could not connect to the beacon socket\n");
+        return -1;
     }
+    printfo("Beacon socket connection accepted\n");
 
+    printfd("Enter GS latitude: ");
+    fflush();
+    scanf("%f", )
+    pthread_create(rotors_th, NULL, rotor_control, NULL);
+
+    time_local = time(NULL);
+    printfd("Ground Station process started. Local time is %s\n", ctime(&time_local));
     while(1) {
-        if(BeaconRead(&beacon_handler, buf, MSG_LENGTH, &process_id) > 0) {
-            printfd("Read ok");
+#ifdef FAKE_BEACON_MSG
+        sleep(5);
+        int v_rand = rand() % 100;
+        lat = 41.391832 + ((rand() % 2 ? 1.0 : -1.0) * (rand() % 100)/10000.0);
+        lng = 2.1155701 + ((rand() % 2 ? 1.0 : -1.0) * (rand() % 100)/10000.0);
+        if(v_rand > 50 && v_rand < 75) {
+            /* Generate a VITOW message */
+            sprintf(buf, "01:02:03|VITOW debug message");
+            process_id = VITOW;
+        } else if(v_rand >= 75) {
+            /* Generate a SYSTEM message */
+            sprintf(buf, "60:50:40|SYSTEM debug message");
+            process_id = SYSTEM;
+        } else {
+            /* Generate a GPS_TEMP message */
+            sprintf(buf, "%ld,%d,%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+                time(NULL), (rand() % 100), 2, lat, lng, 100.0, 10.01, 20.02, 180.0, 22.5);
+            process_id = GPS_TEMP;
+        }
+        if(1) {
+#else
+        if(BeaconRead(&beacon_handler, (unsigned char *)buf, MSG_LENGTH, &process_id) > 0) {
+#endif
+            switch(process_id) {
+                case SYSTEM:
+                case VITOW:
+                    /* This is a debug message from VITOW or xlauncher. */
+                    if(sscanf(buf, "%[^|\n\t\r ] %*[|] %s", str0, str1) == 2) {
+                        /* Match: */
+                        time_local = time(NULL);
+                        if(sscanf(str0, "%d:%d:%d", &hour, &minute, &second) == 3) { /* Time detected. */
+                            time_fields = localtime(&time_local);
+                            time_fields->tm_sec = second % 60;
+                            time_fields->tm_min = minute % 60;
+                            time_fields->tm_hour = hour % 24;
+                            time_sbc = mktime(time_fields);
+                        } else {
+                            time_sbc = 0;
+                        }
+                        printfd("[dbg msg %s] %s\n", str0, str1);
+                        dbman_save_dbg_data(time_local, time_sbc, str1);
+                    } else {
+                        printfw("Beacon with unexpected format: %s\n", buf);
+                    }
+                    break;
+                case GPS_TEMP:
+                    /* This is GPS data. */
+                    sscanf(buf, "%ld,%d,%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+                        &time_gps, &gps_quality, &gps_sv, &lat, &lng, &v_kph, &sea_alt, &geo_alt,
+                        &course, &temp);
+                    printfdg("[GPS data Q:%-5d] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
+                        gps_quality, lat, lng, sea_alt, geo_alt);
+                    printfdg("[GPS data Q:%-5d] time = %ld, gps_sv = %d, vel = %.2lf, course = %.2lf\n",
+                        gps_quality, time_gps, gps_sv, v_kph, course);
+                    printfdg("[GPS data Q:%-5d] Temp. sensor: %.2lf ºC\n", gps_quality, temp);
+                    dbman_save_gps_data(time(NULL), time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, temp);
+
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            printfe("Error reding from the beacon socket\n");
+            sleep(1);
         }
     }
 
     BeaconClose(&beacon_handler);
     return 0;
+}
+
+/***********************************************************************************************//**
+ * Rotor control thread routine
+ **************************************************************************************************/
+void rotor_control(void)
+{
+    int local_az, local_el;
+    control_mode mode = MODE_MANUAL;
+
+    while(!gs_exit) {
+
+    }
+}
+
+/***********************************************************************************************//**
+ * Set a given azimuth and elevation to the rotors.
+ **************************************************************************************************/
+void set_az_el(int v_az, int v_el)
+{
+
+}
+
+/***********************************************************************************************//**
+ * Tell the rotors to go to calibration point "home".
+ **************************************************************************************************/
+void rotors_home(void)
+{
+    sleep(3);
+    printfo("Antenna rotors calibrated\n");
 }
 
 

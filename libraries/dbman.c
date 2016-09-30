@@ -57,16 +57,15 @@ static int mysql_query_no_answer(const char *query)
 /***********************************************************************************************//**
  * Inserts GPS and temperature data into the remote MySQL database.
  **************************************************************************************************/
-int dbman_save_gps_data(time_t time_local, time_t time_gps, const char * lat, const char * lng,
-    const char * v_kph, const char * sea_alt, const char * geo_alt, const char * course,
-    const char * temp)
+int dbman_save_gps_data(time_t time_local, time_t time_gps, double lat, double lng, double v_kph,
+    double sea_alt, double geo_alt, double course, double temp)
 {
     char query[500];
     int retval = 0;
 
     sprintf(query, "INSERT INTO " DB_TABLE_GPS " (`time_local`, `time_gps`, `lat`, `lng`, `v_kph`,"
                    " `sea_alt`, `geo_alt`, `course`, `temp`) VALUES "
-                   "(%ld, %ld, '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+                   "(%ld, %ld, %lf, %lf, %lf, %lf, %lf, %lf, %lf)",
                    time_local, time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, temp);
 
     if(dbman_connect() == 0) {

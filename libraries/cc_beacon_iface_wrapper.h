@@ -32,7 +32,7 @@
 /*** PARAMETERS ***********************************************************************************/
 #define MSG_LENGTH      150
 #define SOCK_IP_ADDR    "localhost"
-#define SOCK_PORT       "1000"
+#define SOCK_PORT       "52001"
 
 #define DBG_PURPLE      "\x1b[35;1m"
 #define DBG_NOCOLOR     "\x1b[0m"

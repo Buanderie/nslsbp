@@ -88,26 +88,26 @@ int main(int argc, char **argv)
                 printfd("Process `vitow_tx`: %d\n", pid_vitow);
                 printfd("Process `tee`     : %d\n", pid_tee);
                 printfd("Process `raspivid`: %d\n", pid_raspivid);
-                send_beacon_msg(PARENT_PROCESS, "All system processes have been started");
+                send_beacon_msg(SYSTEM, "All system processes have been started");
 
                 while(1) {
                     pid = wait(&retval);
                     if(pid > 0) {
                         if(pid == pid_vitow) {
                             printfe("Process `vitow_tx` has terminated\n");
-                            send_beacon_msg(PARENT_PROCESS, "Process `vitow_tx` has terminated with error code %d", retval >> 8);
+                            send_beacon_msg(SYSTEM, "Process `vitow_tx` has terminated with error code %d", retval >> 8);
                             kill(pid_raspivid, SIGINT);
                             kill(pid_tee, SIGINT);
                             break;
                         } else if(pid == pid_tee) {
                             printfe("Process `tee` has terminated\n");
-                            send_beacon_msg(PARENT_PROCESS, "Process `tee` has terminated with error code %d", retval >> 8);
+                            send_beacon_msg(SYSTEM, "Process `tee` has terminated with error code %d", retval >> 8);
                             kill(pid_raspivid, SIGINT);
                             kill(pid_vitow, SIGINT);
                             break;
                         } else if(pid == pid_raspivid) {
                             printfe("Process `raspivid` has terminated\n");
-                            send_beacon_msg(PARENT_PROCESS, "Process `raspivid` has terminated with error code %d", retval >> 8);
+                            send_beacon_msg(SYSTEM, "Process `raspivid` has terminated with error code %d", retval >> 8);
                             kill(pid_tee, SIGINT);
                             kill(pid_vitow, SIGINT);
                             break;
@@ -119,24 +119,24 @@ int main(int argc, char **argv)
                     }
 
                 }
-                send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+                send_beacon_msg(SYSTEM, "System will now reboot");
                 printfe("Exiting now\n");
             } else {
                 /* Error on fork: */
                 printfe("Error while forking this process (1)\n");
-                send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+                send_beacon_msg(SYSTEM, "System will now reboot");
                 printfe("Exiting now\n");
             }
         } else {
             /* Error on fork: */
             printfe("Error while forking this process (2)\n");
-            send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+            send_beacon_msg(SYSTEM, "System will now reboot");
             printfe("Exiting now\n");
         }
     } else {
         /* Error on fork: */
         printfe("Error while forking this process (3)\n");
-        send_beacon_msg(PARENT_PROCESS, "System will now reboot");
+        send_beacon_msg(SYSTEM, "System will now reboot");
         printfe("Exiting now\n");
     }
 

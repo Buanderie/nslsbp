@@ -30,6 +30,7 @@
 #define DBG_GREEND  "\x1b[32m"
 #define DBG_BLUE    "\x1b[34;1m"
 #define DBG_YELLOW  "\x1b[33;1m"
+#define DBG_GREY    "\x1b[30;1m"
 #define DBG_NOCOLOR "\x1b[0m"
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
@@ -41,6 +42,10 @@
     #define printfd(fmt, ...) do { \
             printf("[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") " \
             fmt, curr_time_format(), ## __VA_ARGS__); \
+        } while(0)
+    #define printfdg(fmt, ...) do { \
+            printf("[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") " DBG_GREY \
+            fmt DBG_NOCOLOR, curr_time_format(), ## __VA_ARGS__); \
         } while(0)
     #define printfe(fmt, ...) do { \
             printf("[groundst:%s] (" DBG_REDB    "E" DBG_NOCOLOR ") " \
@@ -59,14 +64,13 @@
 #endif
 
 /*** TYPEDEFS *************************************************************************************/
-
+typedef enum control_mode {MODE_MANUAL, MODE_AUTO};
 
 /*** FUNCTION HEADERS *****************************************************************************/
 const char * curr_time_format(void);
-/*** TYPEDEFS *************************************************************************************/
-
-/*** FUNCTION HEADERS *****************************************************************************/
-
+void rotors_set_az_el(int az, int el);
+void rotors_home(void);
+void rotor_control(void);
 
 
 #endif
