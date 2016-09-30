@@ -56,7 +56,6 @@ function redraw() {
         console.log("NO DATA");
         map.setCenter({lat: 41.39, lng: 2.11});
     }
-
 }
 
 function download_data() {
