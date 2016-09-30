@@ -10,8 +10,8 @@ DBMAN_SO  := $(addprefix lib,$(addsuffix .so,$(DBMAN)))
 CFLAGS  = -Wall -g -fpic
 LDFLAGS = -shared
 
-BEACON_CFLAGS  = -I../module_beacon/cc1101_handler/include -DCC_BEACON_IFACE_WRAPPER_DEBUG
 BEACON_LDFLAGS = -lcc_beacon_iface -L../module_beacon/cc1101_handler/lib
+BEACON_CFLAGS  = -I../module_beacon/cc1101_handler/include #-DCC_BEACON_IFACE_WRAPPER_DEBUG
 
 DBMAN_CFLAGS   = -I/usr/local/mysql/include
 DBMAN_LDFLAGS  = -L/usr/local/mysql/lib -lmysqlclient -lpthread
