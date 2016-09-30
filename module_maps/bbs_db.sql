@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Servidor: localhost
--- Tiempo de generación: 29-09-2016 a las 11:46:29
+-- Tiempo de generación: 30-09-2016 a las 11:43:00
 -- Versión del servidor: 5.5.52-0ubuntu0.14.04.1
 -- Versión de PHP: 5.5.9-1ubuntu4.19
 
@@ -27,7 +27,9 @@ SET time_zone = "+01:00";
 --
 
 CREATE TABLE IF NOT EXISTS `dbg` (
-  `time` int(11) NOT NULL,
+  `row_id` int(11) NOT NULL,
+  `time_local` int(11) NOT NULL,
+  `time_sbc` int(11) NOT NULL,
   `message` varchar(150) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
