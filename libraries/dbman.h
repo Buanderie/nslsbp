@@ -36,6 +36,11 @@
 /*** TYPEDEFS *************************************************************************************/
 
 /*** FUNCTION HEADERS *****************************************************************************/
+int dbman_save_gps_data(time_t time_local, time_t time_gps, const char * lat, const char * lng,
+    const char * v_kph, const char * sea_alt, const char * geo_alt, const char * course,
+    const char * temp);
+int dbman_save_dbg_data(time_t time_local, time_t time_sbc, const char * message);
+int dbman_get_last_position(double *lat, double *lon, double *alt);
 
 
 #endif
