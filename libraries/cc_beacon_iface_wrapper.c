@@ -57,7 +57,7 @@ void send_beacon_msg(MsgSource process_id, const char * fmt, ...)
     if(err > 0) {
 #ifndef CC_BEACON_IFACE_WRAPPER_DEBUG
         if(snprintf(buf, (MSG_LENGTH - 1), "%s|%s", curr_time_format(), msg_user) > 0) {
-            if(BeaconConnect(SOCK_IP_ADDR, SOCK_PORT, &beacon_handler) > 0) {
+            if(BeaconConnect(SOCK_IP_ADDR, SOCK_PORT, &beacon_handler, beacon_sender) > 0) {
                 BeaconWrite(&beacon_handler, (unsigned char *)buf, strlen(buf), process_id);
                 BeaconClose(&beacon_handler);
             }

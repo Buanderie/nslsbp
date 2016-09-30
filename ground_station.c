@@ -22,16 +22,18 @@ BeaconMessageHandler beacon_handler;
 int main(int argc, char ** argv)
 {
     unsigned char buf[MSG_LENGTH];
-    MsgSource * process_id;
+    MsgSource process_id;
 
     printfd("Ground Station process started\n");
 
-    if(BeaconConnect(SOCK_IP_ADDR, SOCK_PORT, &beacon_handler) <= 0) {
+    if(BeaconConnect(SOCK_IP_ADDR, SOCK_PORT, &beacon_handler, beacon_receiver) <= 0) {
         printfe("Could not connect to the beacon socket\n");
     }
 
     while(1) {
-        if(BeaconRead(beacon_handler, buf, MSG_LENGTH, MsgSource * m);
+        if(BeaconRead(&beacon_handler, buf, MSG_LENGTH, &process_id) > 0) {
+            printfd("Read ok");
+        }
     }
 
     BeaconClose(&beacon_handler);
