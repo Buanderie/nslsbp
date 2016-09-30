@@ -1,0 +1,46 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: Skywalker
+# Required-Start: $network $remote_fs $time
+# Required-Stop: $network $remote $time
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop Barbie software system
+# Description:
+### END INIT INFO
+
+start() {
+    echo -n "Starting Barbie software system"
+    daemon --name=cc_tx     --respawn --stdout=/var/log/stdout_cc1101.log --stderr=/var/log/stderr_cc1101.log   cc1101_rx_process.sh
+    daemon --name=gps       --respawn --stdout=/var/log/stdout_gps.log    --stderr=/var/log/stderr_gps.log      gps_process.sh
+    daemon --name=xlauncher --respawn xlauncher
+    echo " done."
+}
+# Restart the service
+stop() {
+    echo -n "Stopping CubeCat-1 software system (Skywalker)..."
+
+    echo " done."
+    echo -n "Stopping remaining CubeCat-1 processes..."
+    daemon --name=cc_rx --stop
+    kill -9 $(pidof picc1101) > /dev/null 2>&1
+    echo " done."
+}
+### main logic ###
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|reload)
+        stop
+        start
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac
+exit 0

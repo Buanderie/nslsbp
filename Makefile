@@ -28,3 +28,6 @@ $(OBJDIR):
 clean:
 	@echo -n '---------: REMOVING binaries... ' && rm xlauncher -f && echo 'done.'
 	@echo -n '---------: REMOVING objects... ' && rm $(OBJDIR) -r -f && echo 'done.'
+
+install:
+	@echo -n '---------: INSTALLING binaries: ' && ln -s xlauncher /usr/bin/xlauncher && echo 'done.'
