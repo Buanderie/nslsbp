@@ -30,7 +30,7 @@
 
 
 /*** PARAMETERS ***********************************************************************************/
-#define MSG_LENGTH      100
+#define MSG_LENGTH      150
 #define SOCK_IP_ADDR    "localhost"
 #define SOCK_PORT       "1000"
 

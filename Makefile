@@ -1,25 +1,32 @@
 
 OBJDIR := obj
-OBJS   := $(addprefix $(OBJDIR)/,xlauncher.o)
+OBJSXL := $(addprefix $(OBJDIR)/,xlauncher.o)
+OBJSGS := $(addprefix $(OBJDIR)/,ground_station.o)
 
 INCLUDES  = -I./libraries -I./module_beacon/cc1101_handler/include
 LIBRARIES = -L./libraries
 
-CFLAGS  = -Wall -DXLAUNCHER_DEBUG $(INCLUDES)
+CFLAGS  = -Wall -DXLAUNCHER_DEBUG -DGROUND_STATION_DEBUG $(INCLUDES)
 LDFLAGS = -lcc_beacon_iface_wrapper $(LIBRARIES)
 
 
-all: xlauncher
+all: xlauncher ground_station
 
 $(OBJDIR)/%.o : %.c
 	@echo -n -e '---------: COMPILING $< -> $@ : '
 	@gcc -c $< -o $@ $(CFLAGS) && echo 'done.'
 
-xlauncher: $(OBJS) | $(OBJDIR)
+xlauncher: $(OBJSXL) | $(OBJDIR)
 	@echo -n -e '---------: LINKING $< -> $@ : '
-	@gcc $(OBJS) -o $@ $(LDFLAGS) && echo 'done.'
+	@gcc $(OBJSXL) -o $@ $(LDFLAGS) && echo 'done.'
 
-$(OBJS): | $(OBJDIR)
+ground_station: $(OBJSGS) | $(OBJDIR)
+	@echo -n -e '---------: LINKING $< -> $@ : '
+	@gcc $(OBJSGS) -o $@ $(LDFLAGS) && echo 'done.'
+
+$(OBJSGS): | $(OBJDIR)
+
+$(OBJSXL): | $(OBJDIR)
 
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
