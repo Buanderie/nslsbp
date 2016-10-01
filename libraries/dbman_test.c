@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     if(dbman_get_gps_data(&gd) == 0) {
         printf("GPS data fetched:\n gd.time_local = %ld,\n gd.time_gps = %ld,\n gd.lat = %lf,\n "
                 "gd.lng = %lf,\n gd.v_kph = %lf,\n gd.sea_alt = %lf,\n gd.geo_alt = %lf,\n "
-                "gd.course = %lf,\n gd.temp = %lf,\n gd.cpu_temp = %lf,\n gd.gpu_temp = %lf\n ",
+                "gd.course = %lf,\n gd.temp = %lf,\n gd.cpu_temp = %lf,\n gd.gpu_temp = %lf\n",
                 gd.time_local, gd.time_gps, gd.lat, gd.lng, gd.v_kph, gd.sea_alt, gd.geo_alt,
                 gd.course, gd.temp, gd.cpu_temp, gd.gpu_temp);
     } else {
