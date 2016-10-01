@@ -68,8 +68,8 @@ int dbman_get_gps_data(GPS_data * data)
                                      "`row_id` DESC LIMIT 0,1") == 0) {
             if((result = mysql_store_result(mysql_handle)) != NULL) {
                 while((row = mysql_fetch_row(result)) != NULL) {
-                    data->time_local = strtol(row[0], NULL, 10);
-                    data->time_gps   = strtol(row[1], NULL, 10);
+                    strncpy(data->time_local, row[0], 12);
+                    strncpy(data->time_gps,   row[1], 12);
                     data->lat        = strtod(row[2], NULL);
                     data->lng        = strtod(row[3], NULL);
                     data->v_kph      = strtod(row[4], NULL);
@@ -105,7 +105,7 @@ int dbman_save_gps_data(GPS_data * data)
 
     sprintf(query, "INSERT INTO " DB_TABLE_GPS " (`time_local`, `time_gps`, `lat`, `lng`, `v_kph`,"
                    " `sea_alt`, `geo_alt`, `course`, `temp`, `cpu_temp`, `gpu_temp`) VALUES "
-                   "(%ld, %ld, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)",
+                   "(%s, %s, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)",
                    data->time_local, data->time_gps, data->lat, data->lng, data->v_kph,
                    data->sea_alt, data->geo_alt, data->course, data->temp, data->cpu_temp,
                    data->gpu_temp);

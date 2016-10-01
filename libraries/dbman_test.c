@@ -26,8 +26,8 @@ int main(int argc, char **argv)
     double a, b, c;
     GPS_data gd;
 
-    gd.time_local = time(NULL);
-    gd.time_gps = time(NULL) + 1;
+    sprintf(gd.time_local, "%11ld", time(NULL));
+    sprintf(gd.time_gps,   "%11ld", time(NULL) + 1);
     gd.lat = 41.3947688;
     gd.lng = 2.0787279;
     gd.v_kph = 0.0;
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
     memset(&gd, 0, sizeof(gd));
     if(dbman_get_gps_data(&gd) == 0) {
-        printf("GPS data fetched:\n gd.time_local = %ld,\n gd.time_gps = %ld,\n gd.lat = %lf,\n "
+        printf("GPS data fetched:\n gd.time_local = %s,\n gd.time_gps = %s,\n gd.lat = %lf,\n "
                 "gd.lng = %lf,\n gd.v_kph = %lf,\n gd.sea_alt = %lf,\n gd.geo_alt = %lf,\n "
                 "gd.course = %lf,\n gd.temp = %lf,\n gd.cpu_temp = %lf,\n gd.gpu_temp = %lf\n",
                 gd.time_local, gd.time_gps, gd.lat, gd.lng, gd.v_kph, gd.sea_alt, gd.geo_alt,

@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 #include <mysql/mysql.h>
 
 #include "dbman_credentials.h"  /* Defines DB_USR and DB_PASSWD. */
@@ -35,8 +36,8 @@
 
 /*** TYPEDEFS *************************************************************************************/
 typedef struct GPS_data {
-    time_t time_local;
-    time_t time_gps;
+    char time_local[12];
+    char time_gps[12];
     double lat;
     double lng;
     double v_kph;
