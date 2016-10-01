@@ -54,9 +54,12 @@ static int mysql_query_no_answer(const char *query)
 }
 
 
+/***********************************************************************************************//**
+ * Retrieves GPS and temperature data from the remote MySQL database.
+ **************************************************************************************************/
 int dbman_get_gps_data(GPS_data * data)
 {
-    
+    return 0;
 }
 /***********************************************************************************************//**
  * Inserts GPS and temperature data into the remote MySQL database.
