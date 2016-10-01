@@ -41,7 +41,10 @@ int main(int argc, char **argv)
         dup(pipe0[WRITE]);
         close(pipe0[WRITE]);        /* stdout is now redirected to Pipe 0 (W). */
 
-        execlp("raspivid", "raspivid", "-t", "0", "-w", "854", "-h", "480", "-b", "750000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
+        send_beacon_msg(SYSTEM, "Launching raspivid process");
+        execlp("raspivid", "raspivid", "-t", "0", "--rotation", "180", "-w", "854", "-h", "480",
+            "-b", "750000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
+        send_beacon_msg(SYSTEM, "Raspivid failed to execute");
 
     } else if(pid_raspivid > 0) {
 
@@ -77,6 +80,9 @@ int main(int argc, char **argv)
                 close(pipe0[READ]);     /* VITOW does not read from Pipe 0. */
 
                 /* VITOW process: --------------------------------------------------------------- */
+                /* TODO set monitor mode!! TODO*/
+                printfe("WiFI IF is not automatically set in monitor mode! (TODO)\n");
+                send_beacon_msg(SYSTEM, "Launching VITOW process");
                 execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 
             } else if(pid_vitow > 0) {
