@@ -43,10 +43,10 @@ restart:
         dup(pipe0[WRITE]);
         close(pipe0[WRITE]);        /* stdout is now redirected to Pipe 0 (W). */
 
-        send_beacon_msg(SYSTEM, "Launching raspivid process");
+        // send_beacon_msg(SYSTEM, "Launching raspivid process");
         execlp("raspivid", "raspivid", "-t", "0", "--rotation", "180", "-w", "854", "-h", "480",
             "-b", "750000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
-        send_beacon_msg(SYSTEM, "Raspivid failed to execute");
+        // send_beacon_msg(SYSTEM, "Raspivid failed to execute");
 
     } else if(pid_raspivid > 0) {
 
@@ -89,7 +89,7 @@ restart:
                 sleep(3);
                 system("/home/pi/bbs/module_vitow/monitor.sh wlan1 13 > /dev/null");
                 printfo("WiFI IF should now be in monitor mode\n");
-                send_beacon_msg(SYSTEM, "Launching VITOW process");
+                // send_beacon_msg(SYSTEM, "Launching VITOW process");
                 execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 
             } else if(pid_vitow > 0) {
@@ -101,7 +101,7 @@ restart:
                 printfd("Process `vitow_tx`: %d\n", pid_vitow);
                 printfd("Process `tee`     : %d\n", pid_tee);
                 printfd("Process `raspivid`: %d\n", pid_raspivid);
-                send_beacon_msg(SYSTEM, "All system processes have been started");
+                // send_beacon_msg(SYSTEM, "All system processes have been started");
 
                 while(1) {
                     pid = wait(&retval);
@@ -109,19 +109,19 @@ restart:
                         if(pid == pid_vitow) {
                             printfe("Process `vitow_tx` has terminated\n");
                             vitow_error_count++;
-                            send_beacon_msg(SYSTEM, "Process `vitow_tx` has terminated with error code %d", retval >> 8);
+                            // send_beacon_msg(SYSTEM, "Process `vitow_tx` has terminated with error code %d", retval >> 8);
                             kill(pid_raspivid, SIGINT);
                             kill(pid_tee, SIGINT);
                             break;
                         } else if(pid == pid_tee) {
                             printfe("Process `tee` has terminated\n");
-                            send_beacon_msg(SYSTEM, "Process `tee` has terminated with error code %d", retval >> 8);
+                            // send_beacon_msg(SYSTEM, "Process `tee` has terminated with error code %d", retval >> 8);
                             kill(pid_raspivid, SIGINT);
                             kill(pid_vitow, SIGINT);
                             break;
                         } else if(pid == pid_raspivid) {
                             printfe("Process `raspivid` has terminated\n");
-                            send_beacon_msg(SYSTEM, "Process `raspivid` has terminated with error code %d", retval >> 8);
+                            // send_beacon_msg(SYSTEM, "Process `raspivid` has terminated with error code %d", retval >> 8);
                             kill(pid_tee, SIGINT);
                             kill(pid_vitow, SIGINT);
                             break;
@@ -134,29 +134,29 @@ restart:
 
                 }
                 if(vitow_error_count < 5) {
-                    send_beacon_msg(SYSTEM, "VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
+                    // send_beacon_msg(SYSTEM, "VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
                     printfw("VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
                     goto restart;
                 } else {
-                    send_beacon_msg(SYSTEM, "System will now reboot");
+                    // send_beacon_msg(SYSTEM, "System will now reboot");
                     printfe("Exiting now\n");
                 }
             } else {
                 /* Error on fork: */
                 printfe("Error while forking this process (1)\n");
-                send_beacon_msg(SYSTEM, "System will now reboot");
+                // send_beacon_msg(SYSTEM, "System will now reboot");
                 printfe("Exiting now\n");
             }
         } else {
             /* Error on fork: */
             printfe("Error while forking this process (2)\n");
-            send_beacon_msg(SYSTEM, "System will now reboot");
+            // send_beacon_msg(SYSTEM, "System will now reboot");
             printfe("Exiting now\n");
         }
     } else {
         /* Error on fork: */
         printfe("Error while forking this process (3)\n");
-        send_beacon_msg(SYSTEM, "System will now reboot");
+        // send_beacon_msg(SYSTEM, "System will now reboot");
         printfe("Exiting now\n");
     }
 

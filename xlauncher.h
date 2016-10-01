@@ -24,7 +24,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#include "cc_beacon_iface_wrapper.h"
+// #include "cc_beacon_iface_wrapper.h"
 
 
 /*** PARAMETERS ***********************************************************************************/

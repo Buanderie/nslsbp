@@ -3,11 +3,11 @@ OBJDIR := obj
 OBJSXL := $(addprefix $(OBJDIR)/,xlauncher.o)
 OBJSGS := $(addprefix $(OBJDIR)/,ground_station.o)
 
-INCLUDES  = -I./libraries -I./module_beacon/cc1101_handler/include
-LIBRARIES = -L./libraries -L./module_beacon/cc1101_handler/lib
+INCLUDES  = -I./libraries
+LIBRARIES = -L./libraries
 
 CFLAGS  = -Wall -DXLAUNCHER_DEBUG -DGROUND_STATION_DEBUG -DFAKE_BEACON_MSG $(INCLUDES)
-LDFLAGS = -ldbman -lcc_beacon_iface_wrapper -lcc_beacon_iface $(LIBRARIES)
+LDFLAGS = -ldbman $(LIBRARIES)
 
 
 all: xlauncher ground_station
