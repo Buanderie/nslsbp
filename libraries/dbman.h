@@ -47,6 +47,7 @@ typedef struct GPS_data {
     double temp;
     double cpu_temp;
     double gpu_temp;
+    char trick[4];      /* This is a TEMPORAL trick to get the system to work. TODO: solve memcpy issue */
 } GPS_data;
 
 /*** FUNCTION HEADERS *****************************************************************************/
