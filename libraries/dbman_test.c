@@ -66,5 +66,7 @@ int main(int argc, char **argv)
     } else {
         printf("Error fetching data\n");
     }
+
+    printf("GPS and Temperature data is %ld Bytes\n", sizeof(gd));
     return 0;
 }
