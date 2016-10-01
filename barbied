@@ -12,7 +12,7 @@
 
 start() {
     echo -n "Starting Barbie Space Explorer framework..."
-    daemon --name=cc_tx     --respawn --stdout=/var/log/stdout_cc1101.log --stderr=/var/log/stderr_cc1101.log   cc1101_tx_process.sh
+    #daemon --name=cc_tx     --respawn --stdout=/var/log/stdout_cc1101.log --stderr=/var/log/stderr_cc1101.log   cc1101_tx_process.sh
     daemon --name=gps       --respawn --stdout=/var/log/stdout_gps.log    --stderr=/var/log/stderr_gps.log      gps_process
     daemon --name=xlauncher --respawn                                                                           xlauncher
     echo " done."
@@ -20,10 +20,10 @@ start() {
 # Restart the service
 stop() {
     echo -n "Stopping  Barbie Space Explorer framework..."
-    daemon --name=cc_tx --stop
+    #daemon --name=cc_tx --stop
     daemon --name=gps --stop
     daemon --name=xlauncher --stop
-    kill -9 $(pidof picc1101 xlauncher gps_process) > /dev/null 2>&1
+    kill -9 $(pidof picc1101 xlauncher gps_process vitow_tx) > /dev/null 2>&1
     echo " done."
 }
 ### main logic ###
