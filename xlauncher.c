@@ -20,6 +20,7 @@ int pipe1[2];
 int pid_tee;
 int pid_raspivid;
 int pid_vitow;
+int vitow_error_count = 0;
 
 /***********************************************************************************************//**
  * Program entry point.
@@ -28,6 +29,7 @@ int main(int argc, char **argv)
 {
     int retval, pid;
 
+restart:
     if(pipe(pipe0) < 0) {
         perror("Unable to create PIPE0");
         return -1;
@@ -92,7 +94,7 @@ int main(int argc, char **argv)
 
             } else if(pid_vitow > 0) {
                 /* xLauncher process: ----------------------------------------------------------- */
-                close(pipe1[READ]);     /* stdin is now redirected to Pipe 1 (R). */
+                close(pipe1[READ]);     /* xLauncher does not need to read from Pipe 1. */
                 close(pipe1[WRITE]);    /* xLauncher does not need to write to Pipe 1. */
                 close(pipe0[READ]);     /* xLauncher does not read from Pipe 0. */
 
@@ -106,6 +108,7 @@ int main(int argc, char **argv)
                     if(pid > 0) {
                         if(pid == pid_vitow) {
                             printfe("Process `vitow_tx` has terminated\n");
+                            vitow_error_count++;
                             send_beacon_msg(SYSTEM, "Process `vitow_tx` has terminated with error code %d", retval >> 8);
                             kill(pid_raspivid, SIGINT);
                             kill(pid_tee, SIGINT);
@@ -130,8 +133,14 @@ int main(int argc, char **argv)
                     }
 
                 }
-                send_beacon_msg(SYSTEM, "System will now reboot");
-                printfe("Exiting now\n");
+                if(vitow_error_count < 5) {
+                    send_beacon_msg(SYSTEM, "VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
+                    printfw("VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
+                    goto restart;
+                } else {
+                    send_beacon_msg(SYSTEM, "System will now reboot");
+                    printfe("Exiting now\n");
+                }
             } else {
                 /* Error on fork: */
                 printfe("Error while forking this process (1)\n");

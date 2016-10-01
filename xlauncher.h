@@ -47,6 +47,7 @@ extern int pipe1[2];
 extern int pid_tee;
 extern int pid_raspivid;
 extern int pid_vitow;
+extern int vitow_error_count;
 
 /*** MACROS: **************************************************************************************/
 #ifdef XLAUNCHER_DEBUG
@@ -56,7 +57,7 @@ extern int pid_vitow;
         } while(0)
     #define printfe(fmt, ...) do { \
             printf("[launcher:%s] (" DBG_REDB    "E" DBG_NOCOLOR ") " \
-            DBG_REDD fmt DBG_NOCOLOR, curr_time_format(), ## __VA_ARGS__); \
+            DBG_REDD fmt DBG_NOCOLOR " ", curr_time_format(), ## __VA_ARGS__); \
         } while(0)
     #define printfw(fmt, ...) do { \
             printf("[launcher:%s] (" DBG_YELLOW  "W" DBG_NOCOLOR ") " \
@@ -64,7 +65,7 @@ extern int pid_vitow;
         } while(0)
     #define printfo(fmt, ...) do { \
             printf("[launcher:%s] (" DBG_GREENB  "o" DBG_NOCOLOR ") " \
-            DBG_GREEND fmt DBG_NOCOLOR, curr_time_format(), ## __VA_ARGS__); \
+            DBG_GREEND fmt DBG_NOCOLOR " ", curr_time_format(), ## __VA_ARGS__); \
         } while(0)
 #else
     #define printfd(fmt, ...) do { } while (0)
