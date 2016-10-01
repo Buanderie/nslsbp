@@ -64,7 +64,7 @@ int dbman_get_gps_data(GPS_data * data)
 /***********************************************************************************************//**
  * Inserts GPS and temperature data into the remote MySQL database.
  **************************************************************************************************/
-int dbman_save_gps_data(GPS_data * data);
+int dbman_save_gps_data(GPS_data * data)
 {
     char query[500];
     int retval = 0;

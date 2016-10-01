@@ -26,6 +26,7 @@
 #define DB_HOST         "localhost"
 #define DB_DBNAME       "barbie_space_explorer"
 #define DB_TABLE_GPS    "gps"
+#define DB_TABLE_DBG    "dbg"
 
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
