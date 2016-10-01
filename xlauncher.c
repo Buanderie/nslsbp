@@ -80,8 +80,13 @@ int main(int argc, char **argv)
                 close(pipe0[READ]);     /* VITOW does not read from Pipe 0. */
 
                 /* VITOW process: --------------------------------------------------------------- */
-                /* TODO set monitor mode!! TODO*/
-                printfe("WiFI IF is not automatically set in monitor mode! (TODO)\n");
+                printfd("Setting monitor mode in WiFi donlge interface\n");
+                system("rmmod ath9k_htc");
+                sleep(3);
+                system("modprobe ath9k_htc");
+                sleep(3);
+                system("/home/pi/bbs/module_vitow/monitor wlan1 13 > /dev/null");
+                printfo("WiFI IF should now be in monitor mode\n");
                 send_beacon_msg(SYSTEM, "Launching VITOW process");
                 execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 

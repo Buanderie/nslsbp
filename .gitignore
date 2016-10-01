@@ -39,4 +39,6 @@ xlauncher
 
 # Output files and watermark
 vitow_output
+camera.mp4
+gpu_temp
 *.png
