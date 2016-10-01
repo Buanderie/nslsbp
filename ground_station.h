@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include "dbman.h"
 #include "cc_beacon_iface.h"

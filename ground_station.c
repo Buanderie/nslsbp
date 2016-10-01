@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
     time_t time_local;
     time_t time_gps;
     int gps_quality, gps_sv;
-    double lat, lng, v_kph, sea_alt, geo_alt, course, temp;
+    double lat, lng, v_kph, sea_alt, geo_alt, course, temp, cpu_temp, gpu_temp;
     pthread_t rotors_th;
 
     printfd("Connecting to beacon socket...\n");
@@ -98,15 +98,19 @@ int main(int argc, char ** argv)
                     break;
                 case GPS_TEMP:
                     /* This is GPS data. */
-                    sscanf(buf, "%ld,%d,%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+                    sscanf(buf, "%ld,%d,%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
                         &time_gps, &gps_quality, &gps_sv, &lat, &lng, &v_kph, &sea_alt, &geo_alt,
-                        &course, &temp);
+                        &course, &temp, &cpu_temp, &gpu_temp);
                     printfdg("[GPS data Q:%-5d] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
                         gps_quality, lat, lng, sea_alt, geo_alt);
                     printfdg("[GPS data Q:%-5d] time = %ld, gps_sv = %d, vel = %.2lf, course = %.2lf\n",
                         gps_quality, time_gps, gps_sv, v_kph, course);
-                    printfdg("[GPS data Q:%-5d] Temp. sensor: %.2lf ºC\n", gps_quality, temp);
-                    dbman_save_gps_data(time(NULL), time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, temp);
+                    if(gpu_temp >= 50.0 || cpu_temp >= 50.0) {
+                        printfe("[GPS data Q:%-5d] Temp. sensor: %.1lf ºC, CPU temp: %.1lf, GPU temp: %.1lf \n", gps_quality, temp, cpu_temp, gpu_temp);
+                    } else {
+                        printfdg("[GPS data Q:%-5d] Temp. sensor: %.1lf ºC, CPU temp: %.1lf, GPU temp: %.1lf \n", gps_quality, temp, cpu_temp, gpu_temp);
+                    }
+                    dbman_save_gps_data(time(NULL), time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, temp, cpu_temp, gpu_temp);
 
                     break;
                 default:
