@@ -20,7 +20,7 @@ start() {
 # Restart the service
 stop() {
     echo -n "Stopping  Barbie Space Explorer framework..."
-    daemon --name=cc_rx --stop
+    daemon --name=cc_tx --stop
     daemon --name=gps --stop
     daemon --name=xlauncher --stop
     kill -9 $(pidof picc1101 xlauncher gps_process) > /dev/null 2>&1
