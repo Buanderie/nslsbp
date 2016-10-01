@@ -23,10 +23,9 @@
 #include "dbman_credentials.h"  /* Defines DB_USR and DB_PASSWD. */
 
 /*** PARAMETERS ***********************************************************************************/
-#define DB_HOST         "192.168.1.100"
+#define DB_HOST         "localhost"
 #define DB_DBNAME       "barbie_space_explorer"
 #define DB_TABLE_GPS    "gps"
-#define DB_TABLE_DBG    "dbg"
 
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
@@ -34,10 +33,23 @@
 /*** GLOBAL VARIABLES: ****************************************************************************/
 
 /*** TYPEDEFS *************************************************************************************/
+typedef struct GPS_data {
+    time_t time_local;
+    time_t time_gps;
+    double lat;
+    double lng;
+    double v_kph;
+    double sea_alt;
+    double geo_alt;
+    double course;
+    double temp;
+    double cpu_temp;
+    double gpu_temp;
+} GPS_data;
 
 /*** FUNCTION HEADERS *****************************************************************************/
-int dbman_save_gps_data(time_t time_local, time_t time_gps, double lat, double lng, double v_kph,
-    double sea_alt, double geo_alt, double course, double temp, double cpu_temp, double gpu_temp);
+int dbman_save_gps_data(GPS_data * data);
+int dbman_get_gps_data(GPS_data * data);
 int dbman_save_dbg_data(time_t time_local, time_t time_sbc, const char * message);
 int dbman_get_last_position(double *lat, double *lon, double *alt);
 
