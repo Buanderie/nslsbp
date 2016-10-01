@@ -59,7 +59,41 @@ static int mysql_query_no_answer(const char *query)
  **************************************************************************************************/
 int dbman_get_gps_data(GPS_data * data)
 {
-    return 0;
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+
+    if(dbman_connect() == 0) {
+        if(mysql_query(mysql_handle, "SELECT time_local, time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, "
+                                     "temp, cpu_temp, gpu_temp FROM " DB_TABLE_GPS " ORDER BY "
+                                     "`row_id` DESC LIMIT 0,1") == 0) {
+            if((result = mysql_store_result(mysql_handle)) != NULL) {
+                while((row = mysql_fetch_row(result)) != NULL) {
+                    data->time_local = strtol(row[0], NULL, 10);
+                    data->time_gps   = strtol(row[1], NULL, 10);
+                    data->lat        = strtod(row[2], NULL);
+                    data->lng        = strtod(row[3], NULL);
+                    data->v_kph      = strtod(row[4], NULL);
+                    data->sea_alt    = strtod(row[5], NULL);
+                    data->geo_alt    = strtod(row[6], NULL);
+                    data->course     = strtod(row[7], NULL);
+                    data->temp       = strtod(row[8], NULL);
+                    data->cpu_temp   = strtod(row[9], NULL);
+                    data->gpu_temp   = strtod(row[10], NULL);
+                }
+                mysql_free_result(result);
+                dbman_disconnect();
+                return 0;
+            } else {
+                /* Result was NULL. */
+                return mysql_errno(mysql_handle);
+            }
+        } else {
+            /* SQL query returned an error. */
+            return mysql_errno(mysql_handle);
+        }
+    } else {
+        return -1;
+    }
 }
 /***********************************************************************************************//**
  * Inserts GPS and temperature data into the remote MySQL database.
