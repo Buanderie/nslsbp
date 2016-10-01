@@ -12,7 +12,7 @@
 
 start() {
     echo -n "Starting Barbie Space Explorer framework..."
-    daemon --name=cc_tx     --respawn --stdout=/var/log/stdout_cc1101.log --stderr=/var/log/stderr_cc1101.log   cc1101_rx_process.sh
+    daemon --name=cc_tx     --respawn --stdout=/var/log/stdout_cc1101.log --stderr=/var/log/stderr_cc1101.log   cc1101_tx_process.sh
     daemon --name=gps       --respawn --stdout=/var/log/stdout_gps.log    --stderr=/var/log/stderr_gps.log      gps_process
     daemon --name=xlauncher --respawn                                                                           xlauncher
     echo " done."
