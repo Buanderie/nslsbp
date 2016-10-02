@@ -51,6 +51,7 @@ static int mysql_query_no_answer(const char *query)
 {
     if(mysql_query(mysql_handle, query) != 0) {
         printf("DBMAN: Could not execute query: %s\n", mysql_error(mysql_handle));
+        printf("SQL QUERY: %s\n", query);
         return mysql_errno(mysql_handle);
     }
     return 0;
@@ -108,7 +109,7 @@ int dbman_save_gps_data(GPS_data * data)
 
     sprintf(query, "INSERT INTO " DB_TABLE_GPS " (`time_local`, `time_gps`, `lat`, `lng`, `v_kph`,"
                    " `sea_alt`, `geo_alt`, `course`, `temp`, `cpu_temp`, `gpu_temp`) VALUES "
-                   "(%s, %s, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)",
+                   "('%s', '%s', %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)",
                    data->time_local, data->time_gps, data->lat, data->lng, data->v_kph,
                    data->sea_alt, data->geo_alt, data->course, data->temp, data->cpu_temp,
                    data->gpu_temp);

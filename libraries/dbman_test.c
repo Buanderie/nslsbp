@@ -26,8 +26,8 @@ int main(int argc, char **argv)
     double a, b, c;
     GPS_data gd;
 
-    sprintf(gd.time_local, "%11ld", time(NULL));
-    sprintf(gd.time_gps,   "%11ld", time(NULL) + 1);
+    sprintf(gd.time_local, "-1", time(NULL));
+    sprintf(gd.time_gps,   "-1", time(NULL) + 1);
     gd.lat = 41.3947688;
     gd.lng = 2.0787279;
     gd.v_kph = 0.0;
