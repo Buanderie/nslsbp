@@ -96,13 +96,17 @@ int main(int argc, char ** argv)
  **************************************************************************************************/
 void * rotor_control(void * arg)
 {
+    int fd = open_rotor_interface(tty_dev_name);
     int local_az, local_el;
     control_mode mode = MODE_MANUAL;
 
+    /* start arduino */
+    init_rotor_control(fd);
+
     while(!gs_exit) {
         /* Example -> each 5 seconds send a SET AZ EL */
-        sleep(5);
-        rotors_set_az_el(10.0, 20.0);
+        sleep(1);
+        rotors_set_az_el(fd, 10.0, 20.0);
     }
     return NULL;
 }
@@ -110,29 +114,23 @@ void * rotor_control(void * arg)
 /***********************************************************************************************//**
  * Set a given azimuth and elevation to the rotors.
  **************************************************************************************************/
-static int open_rotor_interface(const char * tty_path);
-int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout);
 
-void rotors_set_az_el(double v_az, double v_el)
+void rotors_set_az_el(int fd, double v_az, double v_el)
 {
-    int rotor_fd;
     char buf[52];
     int len = sprintf(buf+2, "%lf,%lf", v_az, v_el);
     if (len > 0){
-        rotor_fd = open_rotor_interface(tty_dev_name);
         /* length of the floats + the type of command */
         buf[0] = (char) len + 1;
         buf[1] = (char) 'G';
         printf("Query len: %02x ---> Query: %s\n", buf[0], buf);
-        write(rotor_fd, buf, len + 2);
+        write(fd, buf, len + 2);
         /* Recv the yack/nack */
-        if (uart_read(rotor_fd, buf, 4, 5000 * 1000) == 0){
+        if (uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000) == 0){
             buf[4] = '\0';
             printf("Received: %s\n", buf);
-            close(rotor_fd);
         }else{
             printf("No data on arduino...\n");
-            close(rotor_fd);
         }
     }
     return;
@@ -141,29 +139,22 @@ void rotors_set_az_el(double v_az, double v_el)
 /***********************************************************************************************//**
  * Tell the rotors to go to calibration point "home".
  **************************************************************************************************/
-void rotors_home(void)
+void rotors_home(int fd)
 {
-    int rotor_fd;
     char buf[52];
     int len = 0;
-    rotor_fd = open_rotor_interface(tty_dev_name);
     buf[0] = (char) len + 1;
     buf[1] = (char) 'H';
     printf("Query len: %u ---> Query: %s\n", (unsigned int) buf[0], buf+1);
-    write(rotor_fd, buf, len + 2);
+    write(fd, buf, len + 2);
     /* Recv the yack/nack */
-    read(rotor_fd, buf, 4);
-    buf[4] = '\0';
     printf("Received: %s\n", buf);
-    if ((uart_read(rotor_fd, buf, 4, 5000 * 1000)) == 0){
+    if ((uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
         buf[4] = '\0';
         printf("Received: %s\n", buf);
-        close(rotor_fd);
     }else{
         printf("No data on arduino...\n");
-        close(rotor_fd);
     }
-    sleep(3);
     printfo("Antenna rotors calibrated\n");
     return;
 }
@@ -281,6 +272,7 @@ int open_rotor_interface(const char * tty_path)
 {
     int fd;    // File descriptor for the port
     struct termios options;
+
     fd = open(tty_path, O_RDWR | O_NOCTTY);
 
     if (fd == -1){
@@ -303,11 +295,32 @@ int open_rotor_interface(const char * tty_path)
     // Enable data to be processed as raw input
     options.c_lflag &= ~(ICANON | ECHO | ISIG);
 
-    options.c_cc[VMIN]  =  1;           // 5 bytes to read
+    options.c_cc[VMIN]  =  1;           // 1 bytes to read
     options.c_cc[VTIME]  =  0;         // 10 * 0.1 seconds read timeout
 
     // Set the new attributes
     tcflush( fd, TCIFLUSH );
     tcsetattr(fd, TCSANOW, &options);
     return (fd);
+}
+
+void init_rotor_control (int fd)
+{
+    char buf[52];
+    int ret;
+    int len = 0;
+    int limit = 0;
+    do{
+        buf[0] = (char) len + 1;
+        buf[1] = (char) 'I';
+        write(fd, buf, len + 2);
+        /* Recv the yack/nack */
+        if ((ret = uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
+            buf[4] = '\0';
+            if (strcmp(buf, "NACK") == 0){
+                return;
+            }
+        }else{
+        }
+    }while(ret != 0 && ++limit < 4);
 }

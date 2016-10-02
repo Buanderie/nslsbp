@@ -84,9 +84,13 @@ typedef enum  {MODE_MANUAL, MODE_AUTO} control_mode;
 
 /*** FUNCTION HEADERS *****************************************************************************/
 const char * curr_time_format(void);
-void rotors_set_az_el(double az, double el);
-void rotors_home(void);
+void rotors_set_az_el(int fd, double az, double el);
+void rotors_home(int fd);
 void * rotor_control(void * arg);
+
+void init_rotor_control (int fd);
+int open_rotor_interface(const char * tty_path);
+int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout);
 
 
 #endif
