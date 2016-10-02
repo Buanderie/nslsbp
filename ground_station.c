@@ -20,6 +20,7 @@ double gs_alt;
 bool gs_exit = false;
 double az, el;
 char tty_dev_name[26];
+int fd;
 
 /***********************************************************************************************//**
  * Program entry point
@@ -31,7 +32,8 @@ int main(int argc, char ** argv)
     time_t last_update_sbc = -2;
     time_t time_local;
     GPS_data gd;
-    double delta_lat, delta_lng, delta_alt, dist_x, dist_y;
+    double delta_lat, delta_lng, delta_alt, dist;
+    double aux, arc, x, y;
 
     if(argc != 5) {
         printfe("Wrong number of arguments. Local (GS) latitude, longitude and altitude are required\n");
@@ -41,9 +43,13 @@ int main(int argc, char ** argv)
 
     /* 26 -> max tty dev name size */
     strncpy(tty_dev_name, argv[1], 26);
-    gs_lat = strtod(argv[2], NULL);
-    gs_lng = strtod(argv[3], NULL);
-    gs_alt = strtod(argv[4], NULL);
+    gs_lat = DEG2RAD(strtod(argv[2], NULL));
+    gs_lng = DEG2RAD(strtod(argv[3], NULL));
+    gs_alt = DEG2RAD(strtod(argv[4], NULL));
+
+
+    fd = open_rotor_interface(tty_dev_name);
+    init_rotor_control(fd);
 
     pthread_create(&rotors_th, NULL, rotor_control, NULL);
 
@@ -67,20 +73,35 @@ int main(int argc, char ** argv)
                     printfdg("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", gd.temp, gd.cpu_temp, gd.gpu_temp);
                 }
 
-                /* Calculate new azimuth and elevation: */
-                delta_lat = gs_lat - gd.lat;
-                delta_lng = gs_lng - gd.lng;
+
+                /* Calculate new azimuth and elevation using Haversine formulas to calculate great-circle
+                 * distances. Implementation is extracted from the following resource:
+                 * ** http://www.movable-type.co.uk/scripts/latlong.html
+                 */
+                gd.lat = DEG2RAD(gd.lat);
+                gd.lng = DEG2RAD(gd.lng);
+                delta_lat = gd.lat - gs_lat;
+                delta_lng = gd.lng - gs_lng;
                 delta_alt = gd.sea_alt - gs_alt;
-                dist_x = delta_lat * KM_DEG_LAT;
-                dist_y = delta_lng * KM_DEG_LNG * cos(gs_lat);
-                printfd("Delta Lat: %lfº, Lng: %lfº, alt: %.1lfº; Distance: %.2ld km\n",
-                    delta_lat, delta_lng, delta_alt, (sqrt((dist_x * dist_x) + (dist_y * dist_y)) / 1000.0));
-                az = atan(delta_lng / delta_lat) * 180.0 / PI;
-                if((delta_lat > 0.0 && delta_lng < 0.0) || (delta_lat < 0.0 && delta_lng < 0.0)) {
-                    az += 180.0;
+                aux = sin(delta_lat / 2.0) * sin(delta_lat / 2.0) +
+                      cos(gs_lat) * cos(gd.lat) *
+                      sin(delta_lng / 2.0) * sin(delta_lng / 2.0);
+
+                arc = 2.0 * atan2(sqrt(aux), sqrt(1 - aux));    /* Great-circle distance in Radians.    */
+                dist = arc * EARTH_RADIUS;                      /* Great-circle distance in kilometers. */
+
+                /* Formula: θ = atan2( sin Δλ ⋅ cos φ2 , cos φ1 ⋅ sin φ2 − sin φ1 ⋅ cos φ2 ⋅ cos Δλ )
+                 *  where   φ1,λ1 is the start point, φ2,λ2 the end point (Δλ is the difference in longitude)
+                 */
+                y = sin(delta_lng) * cos(gd.lng);
+                x = (cos(gs_lat) * sin(gd.lat)) - (sin(gs_lat) * cos(gd.lat) * cos(delta_lng));
+                az = fmod((RAD2DEG(atan2(y, x)) + 180.0), 360.0);
+
+                el = RAD2DEG(atan((delta_alt) / dist));
+                printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
+                if(mode == AUTO) {
+                    rotors_set_az_el(az, el);
                 }
-                el = atan(delta_alt / sqrt((delta_lat * delta_lat) + (delta_lng * delta_lng)));
-                printfo("New AZ: %.2lf, EL: %.2lf\n", az, el);
             }
         } else {
             printfe("Error retrieving beacon data\n");
@@ -96,17 +117,11 @@ int main(int argc, char ** argv)
  **************************************************************************************************/
 void * rotor_control(void * arg)
 {
-    int fd = open_rotor_interface(tty_dev_name);
-    int local_az, local_el;
-    control_mode mode = MODE_MANUAL;
-
-    /* start arduino */
-    init_rotor_control(fd);
+//    int local_az, local_el;
+    // control_mode mode = MODE_MANUAL;
 
     while(!gs_exit) {
-        /* Example -> each 5 seconds send a SET AZ EL */
         sleep(1);
-        rotors_set_az_el(fd, 10.0, 20.0);
     }
     return NULL;
 }
@@ -114,7 +129,6 @@ void * rotor_control(void * arg)
 /***********************************************************************************************//**
  * Set a given azimuth and elevation to the rotors.
  **************************************************************************************************/
-
 void rotors_set_az_el(int fd, double v_az, double v_el)
 {
     char buf[52];
@@ -180,37 +194,22 @@ const char * curr_time_format(void)
 /***********************************************************************************************//**
  * Performs a read with timeouts.
  **************************************************************************************************/
-/* UART READ FUNCTION *******************************************************************************
- *  Name    :   uart_read                                                                           *
- *  Descr.  :   Read buffer from UART.                                                              *
- *  Args.   :                                                                                       *
- *  - int       fd              :   File descriptor where the read will be performed                *
- *  - unsigned char * buffer    :   Buffer where data received will be stored                       *
- *  - int       buf_size        :   Expected size of data                                           *
- *  - int       timeout         :   Number of microseconds of timeout                               *
- *                                                                                                  *
- *  Returns :   NOERROR    -> Reading succesful, buffer has the recieved data                       *
- *              EHWFAULT1  -> Reading error, contents of buffer undefined                           *
- *              EHWTIMEOUT -> Timeout error                                                         *
- *  Author  :   Marc Marí Barceló                                                                   *
- *  Remarks :   --                                                                                  *
- ****************************************************************************************************/
 int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
 {
     int r_op, sel_op;
     fd_set uart_fd;
-    struct timeval max_time;    // 1-byte timeout represented as a timeval struct.
-    struct timeval end;         // Time at which the final timeout will occur.
-    int diff_time;              // Time difference between select and read (without timeout), in microseconds.
+    struct timeval max_time;    /* 1-byte timeout represented as a timeval struct. */
+    struct timeval end;         /* Time at which the final timeout will occur. */
+    int diff_time;              /* Time difference between select and read (without timeout), in microseconds. */
 
-    if(timeout > 0) 
+    if(timeout > 0)
     {
         // Timed read:
         // -- Prepare counters
         gettimeofday(&end, NULL);
         end.tv_sec += (timeout / 1000000);
         end.tv_usec += (timeout % 1000000);
-        
+
         max_time.tv_sec = (timeout / 1000000);
         max_time.tv_usec = (timeout % 1000000);
 
@@ -219,7 +218,7 @@ int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
             // Prepare select structures
             FD_ZERO(&uart_fd);
             FD_SET(fd, &uart_fd);
-            
+
             sel_op = select(FD_SETSIZE, &uart_fd, NULL, NULL, &max_time);
             if(sel_op == 0)
             {
@@ -238,11 +237,11 @@ int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
             }else{
                 return -1;
             }
-            
+
             // Get the current time and calculate the difference in order to reduce the timeout:
             gettimeofday(&max_time, NULL);
             diff_time = ((end.tv_sec * 1000000) + end.tv_usec) - ((max_time.tv_sec * 1000000) + max_time.tv_usec);
-            
+
             // Calculate/set the new timeout:
             max_time.tv_sec  = diff_time / 1000000;
             max_time.tv_usec = diff_time % 1000000;
@@ -279,7 +278,7 @@ int open_rotor_interface(const char * tty_path)
         fprintf(stderr, "open_port: Unable to open %s %s\n", tty_path, strerror(errno));
         exit(EXIT_FAILURE);
     }
-    
+
     fcntl(fd, F_SETFL);             // Configure port reading
     tcgetattr(fd, &options);        // Get the current options for the port
     cfsetispeed(&options, B38400);   // Set the baud rates to 230400
@@ -290,7 +289,7 @@ int open_rotor_interface(const char * tty_path)
     options.c_cflag &= ~CSTOPB;             // 1 stop bit
     options.c_cflag &= ~CSIZE;              // Mask data size
     options.c_cflag |=  CS8;                // Select 8 data bits
-    options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control  
+    options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control
 
     // Enable data to be processed as raw input
     options.c_lflag &= ~(ICANON | ECHO | ISIG);

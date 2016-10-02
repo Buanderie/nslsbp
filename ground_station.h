@@ -32,17 +32,18 @@
 #include "dbman.h"
 
 /*** PARAMETERS ***********************************************************************************/
-#define PI          3.14159265
-#define KM_DEG_LAT  111.132
-#define KM_DEG_LNG  78.847
-#define DBG_REDB    "\x1b[31;1m"
-#define DBG_REDD    "\x1b[31m"
-#define DBG_GREENB  "\x1b[32;1m"
-#define DBG_GREEND  "\x1b[32m"
-#define DBG_BLUE    "\x1b[34;1m"
-#define DBG_YELLOW  "\x1b[33;1m"
-#define DBG_GREY    "\x1b[30;1m"
-#define DBG_NOCOLOR "\x1b[0m"
+#define PI              3.14159265
+#define EARTH_RADIUS    6371e3 /* in metres. */
+#define DEG2RAD(x)      (x * PI / 180.0)
+#define RAD2DEG(x)      (x * 180.0 / PI)
+#define DBG_REDB        "\x1b[31;1m"
+#define DBG_REDD        "\x1b[31m"
+#define DBG_GREENB      "\x1b[32;1m"
+#define DBG_GREEND      "\x1b[32m"
+#define DBG_BLUE        "\x1b[34;1m"
+#define DBG_YELLOW      "\x1b[33;1m"
+#define DBG_GREY        "\x1b[30;1m"
+#define DBG_NOCOLOR     "\x1b[0m"
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
 
