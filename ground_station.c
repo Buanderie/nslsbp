@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
                 dist_y = delta_lng * KM_DEG_LNG * cos(gs_lat);
                 printfd("Delta Lat: %lfº, Lng: %lfº, alt: %.1lfº; Distance: %.2ld km\n",
                     delta_lat, delta_lng, delta_alt, (sqrt((dist_x * dist_x) + (dist_y * dist_y)) / 1000.0));
-                az = atan(delta_lat / delta_lng) * 180.0 / PI;
+                az = atan(delta_lng / delta_lat) * 180.0 / PI;
                 if((delta_lat > 0.0 && delta_lng < 0.0) || (delta_lat < 0.0 && delta_lng < 0.0)) {
                     az += 180.0;
                 }
@@ -135,4 +135,37 @@ const char * curr_time_format(void)
     strftime(retval, 21, "%H:%M:%S", tmp);
 
     return retval;
+}
+
+/***********************************************************************************************//**
+ * Performs a read with timeouts.
+ **************************************************************************************************/
+int read_timed(int fd, void * buf, size_t count, int timeout)
+{
+    int             rdop, ready;
+    fd_set          set;
+    struct timeval  to;
+
+    FD_ZERO(&set);
+    FD_SET(fd, &set);
+
+    to.tv_sec = 0;
+    to.tv_usec = timeout * 1000;
+
+    ready = select(fd+1, &set, NULL, NULL, &to);
+    if(ready == 0)
+    {
+        // Timeout
+        printfe("Read timed out\n");
+        rdop = -1;
+    }else if(ready > 0){
+        // Ready
+        rdop = read(fd,buf,count);
+    }else{
+        // Error
+        printfe("Unknown error in select\n");
+        rdop = -1;
+    }
+
+    return rdop;
 }
