@@ -19,6 +19,7 @@ double gs_lng;
 double gs_alt;
 bool gs_exit = false;
 double az, el;
+char tty_dev_name[26];
 
 /***********************************************************************************************//**
  * Program entry point
@@ -32,15 +33,17 @@ int main(int argc, char ** argv)
     GPS_data gd;
     double delta_lat, delta_lng, delta_alt, dist_x, dist_y;
 
-    if(argc != 4) {
+    if(argc != 5) {
         printfe("Wrong number of arguments. Local (GS) latitude, longitude and altitude are required\n");
-        printfd("Issue: ./ground_station <lat> <lon> <alt>\n");
+        printfd("Issue: ./ground_station /dev/tty... <lat> <lon> <alt>\n");
         return -1;
     }
 
-    gs_lat = strtod(argv[1], NULL);
-    gs_lng = strtod(argv[2], NULL);
-    gs_alt = strtod(argv[3], NULL);
+    /* 26 -> max tty dev name size */
+    strncpy(tty_dev_name, argv[1], 26);
+    gs_lat = strtod(argv[2], NULL);
+    gs_lng = strtod(argv[3], NULL);
+    gs_alt = strtod(argv[4], NULL);
 
     pthread_create(&rotors_th, NULL, rotor_control, NULL);
 
@@ -97,7 +100,9 @@ void * rotor_control(void * arg)
     control_mode mode = MODE_MANUAL;
 
     while(!gs_exit) {
-
+        /* Example -> each 5 seconds send a SET AZ EL */
+        sleep(5);
+        rotors_set_az_el(10.0, 20.0);
     }
     return NULL;
 }
@@ -105,9 +110,32 @@ void * rotor_control(void * arg)
 /***********************************************************************************************//**
  * Set a given azimuth and elevation to the rotors.
  **************************************************************************************************/
-void set_az_el(int v_az, int v_el)
-{
+static int open_rotor_interface(const char * tty_path);
+int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout);
 
+void rotors_set_az_el(double v_az, double v_el)
+{
+    int rotor_fd;
+    char buf[52];
+    int len = sprintf(buf+2, "%lf,%lf", v_az, v_el);
+    if (len > 0){
+        rotor_fd = open_rotor_interface(tty_dev_name);
+        /* length of the floats + the type of command */
+        buf[0] = (char) len + 1;
+        buf[1] = (char) 'G';
+        printf("Query len: %02x ---> Query: %s\n", buf[0], buf);
+        write(rotor_fd, buf, len + 2);
+        /* Recv the yack/nack */
+        if (uart_read(rotor_fd, buf, 4, 5000 * 1000) == 0){
+            buf[4] = '\0';
+            printf("Received: %s\n", buf);
+            close(rotor_fd);
+        }else{
+            printf("No data on arduino...\n");
+            close(rotor_fd);
+        }
+    }
+    return;
 }
 
 /***********************************************************************************************//**
@@ -115,8 +143,29 @@ void set_az_el(int v_az, int v_el)
  **************************************************************************************************/
 void rotors_home(void)
 {
+    int rotor_fd;
+    char buf[52];
+    int len = 0;
+    rotor_fd = open_rotor_interface(tty_dev_name);
+    buf[0] = (char) len + 1;
+    buf[1] = (char) 'H';
+    printf("Query len: %u ---> Query: %s\n", (unsigned int) buf[0], buf+1);
+    write(rotor_fd, buf, len + 2);
+    /* Recv the yack/nack */
+    read(rotor_fd, buf, 4);
+    buf[4] = '\0';
+    printf("Received: %s\n", buf);
+    if ((uart_read(rotor_fd, buf, 4, 5000 * 1000)) == 0){
+        buf[4] = '\0';
+        printf("Received: %s\n", buf);
+        close(rotor_fd);
+    }else{
+        printf("No data on arduino...\n");
+        close(rotor_fd);
+    }
     sleep(3);
     printfo("Antenna rotors calibrated\n");
+    return;
 }
 
 
@@ -140,32 +189,125 @@ const char * curr_time_format(void)
 /***********************************************************************************************//**
  * Performs a read with timeouts.
  **************************************************************************************************/
-int read_timed(int fd, void * buf, size_t count, int timeout)
+/* UART READ FUNCTION *******************************************************************************
+ *  Name    :   uart_read                                                                           *
+ *  Descr.  :   Read buffer from UART.                                                              *
+ *  Args.   :                                                                                       *
+ *  - int       fd              :   File descriptor where the read will be performed                *
+ *  - unsigned char * buffer    :   Buffer where data received will be stored                       *
+ *  - int       buf_size        :   Expected size of data                                           *
+ *  - int       timeout         :   Number of microseconds of timeout                               *
+ *                                                                                                  *
+ *  Returns :   NOERROR    -> Reading succesful, buffer has the recieved data                       *
+ *              EHWFAULT1  -> Reading error, contents of buffer undefined                           *
+ *              EHWTIMEOUT -> Timeout error                                                         *
+ *  Author  :   Marc Marí Barceló                                                                   *
+ *  Remarks :   --                                                                                  *
+ ****************************************************************************************************/
+int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
 {
-    int             rdop, ready;
-    fd_set          set;
-    struct timeval  to;
+    int r_op, sel_op;
+    fd_set uart_fd;
+    struct timeval max_time;    // 1-byte timeout represented as a timeval struct.
+    struct timeval end;         // Time at which the final timeout will occur.
+    int diff_time;              // Time difference between select and read (without timeout), in microseconds.
 
-    FD_ZERO(&set);
-    FD_SET(fd, &set);
-
-    to.tv_sec = 0;
-    to.tv_usec = timeout * 1000;
-
-    ready = select(fd+1, &set, NULL, NULL, &to);
-    if(ready == 0)
+    if(timeout > 0) 
     {
-        // Timeout
-        printfe("Read timed out\n");
-        rdop = -1;
-    }else if(ready > 0){
-        // Ready
-        rdop = read(fd,buf,count);
-    }else{
-        // Error
-        printfe("Unknown error in select\n");
-        rdop = -1;
-    }
+        // Timed read:
+        // -- Prepare counters
+        gettimeofday(&end, NULL);
+        end.tv_sec += (timeout / 1000000);
+        end.tv_usec += (timeout % 1000000);
+        
+        max_time.tv_sec = (timeout / 1000000);
+        max_time.tv_usec = (timeout % 1000000);
 
-    return rdop;
+        while(buf_size > 0)
+        {
+            // Prepare select structures
+            FD_ZERO(&uart_fd);
+            FD_SET(fd, &uart_fd);
+            
+            sel_op = select(FD_SETSIZE, &uart_fd, NULL, NULL, &max_time);
+            if(sel_op == 0)
+            {
+                // Timeout
+                return -1;
+            }else if(sel_op < 0){
+                // Error setting the select
+                if(errno == EINTR) continue;
+                else return -2;
+            }
+
+            // Read from UART:
+            if((r_op = read(fd, buffer++, 1)) == 1)
+            {
+                --buf_size;
+            }else{
+                return -1;
+            }
+            
+            // Get the current time and calculate the difference in order to reduce the timeout:
+            gettimeofday(&max_time, NULL);
+            diff_time = ((end.tv_sec * 1000000) + end.tv_usec) - ((max_time.tv_sec * 1000000) + max_time.tv_usec);
+            
+            // Calculate/set the new timeout:
+            max_time.tv_sec  = diff_time / 1000000;
+            max_time.tv_usec = diff_time % 1000000;
+        }
+    }else{
+        // No timeouts:
+        while(buf_size > 0)
+        {
+            // Read from UART:
+            if((r_op = read(fd, buffer++, 1)) == 1)
+            {
+                --buf_size;
+            }else{
+                if(errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    return -1;
+                }else{
+                    return -1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+int open_rotor_interface(const char * tty_path)
+{
+    int fd;    // File descriptor for the port
+    struct termios options;
+    fd = open(tty_path, O_RDWR | O_NOCTTY);
+
+    if (fd == -1){
+        fprintf(stderr, "open_port: Unable to open %s %s\n", tty_path, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    
+    fcntl(fd, F_SETFL);             // Configure port reading
+    tcgetattr(fd, &options);        // Get the current options for the port
+    cfsetispeed(&options, B38400);   // Set the baud rates to 230400
+    cfsetospeed(&options, B38400);
+
+    options.c_cflag |= (CLOCAL | CREAD);    // Enable the receiver and set local mode
+    options.c_cflag &= ~PARENB;             // No parity bit
+    options.c_cflag &= ~CSTOPB;             // 1 stop bit
+    options.c_cflag &= ~CSIZE;              // Mask data size
+    options.c_cflag |=  CS8;                // Select 8 data bits
+    options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control  
+
+    // Enable data to be processed as raw input
+    options.c_lflag &= ~(ICANON | ECHO | ISIG);
+
+    options.c_cc[VMIN]  =  1;           // 5 bytes to read
+    options.c_cc[VTIME]  =  0;         // 10 * 0.1 seconds read timeout
+
+    // Set the new attributes
+    tcflush( fd, TCIFLUSH );
+    tcsetattr(fd, TCSANOW, &options);
+    return (fd);
 }

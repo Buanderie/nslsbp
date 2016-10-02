@@ -22,6 +22,12 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <math.h>
+#include <string.h>  // String function definitions
+#include <fcntl.h>   // File control definitions
+#include <errno.h>   // Error number definitions
+#include <termios.h> // POSIX terminal control definitions
+#include <sys/time.h>
+#include <sys/ioctl.h>
 
 #include "dbman.h"
 
@@ -78,7 +84,7 @@ typedef enum  {MODE_MANUAL, MODE_AUTO} control_mode;
 
 /*** FUNCTION HEADERS *****************************************************************************/
 const char * curr_time_format(void);
-void rotors_set_az_el(int az, int el);
+void rotors_set_az_el(double az, double el);
 void rotors_home(void);
 void * rotor_control(void * arg);
 
