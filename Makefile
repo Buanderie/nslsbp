@@ -7,7 +7,7 @@ INCLUDES  = -I./libraries
 LIBRARIES = -L./libraries
 
 CFLAGS  = -Wall -DXLAUNCHER_DEBUG -DGROUND_STATION_DEBUG -DFAKE_BEACON_MSG $(INCLUDES)
-LDFLAGS = -ldbman $(LIBRARIES)
+LDFLAGS = -ldbman -pthread -lm $(LIBRARIES)
 
 
 all: xlauncher ground_station

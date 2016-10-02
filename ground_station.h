@@ -19,12 +19,16 @@
 #include <time.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <math.h>
 
 #include "dbman.h"
-#include "cc_beacon_iface.h"
-#include "cc_beacon_iface_wrapper.h"
 
 /*** PARAMETERS ***********************************************************************************/
+#define PI          3.14159265
+#define KM_DEG_LAT  111.132
+#define KM_DEG_LNG  78.847
 #define DBG_REDB    "\x1b[31;1m"
 #define DBG_REDD    "\x1b[31m"
 #define DBG_GREENB  "\x1b[32;1m"
@@ -37,6 +41,11 @@
 /*** GLOBAL CONSTANTS: ****************************************************************************/
 
 /*** GLOBAL VARIABLES: ****************************************************************************/
+extern double gs_lat;
+extern double gs_lng;
+extern double gs_alt;
+extern bool gs_exit;
+extern double az, el;
 
 /*** MACROS: **************************************************************************************/
 #ifdef GROUND_STATION_DEBUG
@@ -65,13 +74,13 @@
 #endif
 
 /*** TYPEDEFS *************************************************************************************/
-typedef enum control_mode {MODE_MANUAL, MODE_AUTO};
+typedef enum  {MODE_MANUAL, MODE_AUTO} control_mode;
 
 /*** FUNCTION HEADERS *****************************************************************************/
 const char * curr_time_format(void);
 void rotors_set_az_el(int az, int el);
 void rotors_home(void);
-void rotor_control(void);
+void * rotor_control(void * arg);
 
 
 #endif

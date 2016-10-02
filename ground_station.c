@@ -14,122 +14,84 @@
 #include "ground_station.h"
 
 /*** GLOBAL VARIABLES *****************************************************************************/
-static BeaconMessageHandler beacon_handler;
-static bool gs_exit = false;
-static int az, el;
+double gs_lat;
+double gs_lng;
+double gs_alt;
+bool gs_exit = false;
+double az, el;
 
 /***********************************************************************************************//**
  * Program entry point
  **************************************************************************************************/
 int main(int argc, char ** argv)
 {
-    char buf[MSG_LENGTH];
-    MsgSource process_id;
-    char str0[MSG_LENGTH];
-    char str1[MSG_LENGTH];
-    int hour, minute, second;
-    struct tm * time_fields;
-    time_t time_sbc;
-    time_t time_local;
-    time_t time_gps;
-    int gps_quality, gps_sv;
-    double lat, lng, v_kph, sea_alt, geo_alt, course, temp, cpu_temp, gpu_temp;
     pthread_t rotors_th;
+    time_t last_update_gps = -2;
+    time_t last_update_sbc = -2;
+    time_t time_local;
+    GPS_data gd;
+    double delta_lat, delta_lng, delta_alt, dist_x, dist_y;
 
-    printfd("Connecting to beacon socket...\n");
-    if(BeaconConnect(SOCK_IP_ADDR, SOCK_PORT, &beacon_handler, beacon_receiver) <= 0) {
-        printfe("Could not connect to the beacon socket\n");
+    if(argc != 4) {
+        printfe("Wrong number of arguments. Local (GS) latitude, longitude and altitude are required\n");
+        printfd("Issue: ./ground_station <lat> <lon> <alt>\n");
         return -1;
     }
-    printfo("Beacon socket connection accepted\n");
 
-    printfd("Enter GS latitude: ");
-    fflush();
-    scanf("%f", )
-    pthread_create(rotors_th, NULL, rotor_control, NULL);
+    gs_lat = strtod(argv[1], NULL);
+    gs_lng = strtod(argv[2], NULL);
+    gs_alt = strtod(argv[3], NULL);
+
+    pthread_create(&rotors_th, NULL, rotor_control, NULL);
 
     time_local = time(NULL);
-    printfd("Ground Station process started. Local time is %s\n", ctime(&time_local));
-    while(1) {
-#ifdef FAKE_BEACON_MSG
-        sleep(5);
-        int v_rand = rand() % 100;
-        lat = 41.391832 + ((rand() % 2 ? 1.0 : -1.0) * (rand() % 100)/10000.0);
-        lng = 2.1155701 + ((rand() % 2 ? 1.0 : -1.0) * (rand() % 100)/10000.0);
-        if(v_rand > 50 && v_rand < 75) {
-            /* Generate a VITOW message */
-            sprintf(buf, "01:02:03|VITOW debug message");
-            process_id = VITOW;
-        } else if(v_rand >= 75) {
-            /* Generate a SYSTEM message */
-            sprintf(buf, "60:50:40|SYSTEM debug message");
-            process_id = SYSTEM;
-        } else {
-            /* Generate a GPS_TEMP message */
-            sprintf(buf, "%ld,%d,%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
-                time(NULL), (rand() % 100), 2, lat, lng, 100.0, 10.01, 20.02, 180.0, 22.5);
-            process_id = GPS_TEMP;
-        }
-        if(1) {
-#else
-        if(BeaconRead(&beacon_handler, (unsigned char *)buf, MSG_LENGTH, &process_id) > 0) {
-#endif
-            switch(process_id) {
-                case SYSTEM:
-                case VITOW:
-                    /* This is a debug message from VITOW or xlauncher. */
-                    if(sscanf(buf, "%[^|\n\t\r ] %*[|] %s", str0, str1) == 2) {
-                        /* Match: */
-                        time_local = time(NULL);
-                        if(sscanf(str0, "%d:%d:%d", &hour, &minute, &second) == 3) { /* Time detected. */
-                            time_fields = localtime(&time_local);
-                            time_fields->tm_sec = second % 60;
-                            time_fields->tm_min = minute % 60;
-                            time_fields->tm_hour = hour % 24;
-                            time_sbc = mktime(time_fields);
-                        } else {
-                            time_sbc = 0;
-                        }
-                        printfd("[dbg msg %s] %s\n", str0, str1);
-                        dbman_save_dbg_data(time_local, time_sbc, str1);
-                    } else {
-                        printfw("Beacon with unexpected format: %s\n", buf);
-                    }
-                    break;
-                case GPS_TEMP:
-                    /* This is GPS data. */
-                    sscanf(buf, "%ld,%d,%d,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
-                        &time_gps, &gps_quality, &gps_sv, &lat, &lng, &v_kph, &sea_alt, &geo_alt,
-                        &course, &temp, &cpu_temp, &gpu_temp);
-                    printfdg("[GPS data Q:%-5d] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
-                        gps_quality, lat, lng, sea_alt, geo_alt);
-                    printfdg("[GPS data Q:%-5d] time = %ld, gps_sv = %d, vel = %.2lf, course = %.2lf\n",
-                        gps_quality, time_gps, gps_sv, v_kph, course);
-                    if(gpu_temp >= 50.0 || cpu_temp >= 50.0) {
-                        printfe("[GPS data Q:%-5d] Temp. sensor: %.1lf ºC, CPU temp: %.1lf, GPU temp: %.1lf \n", gps_quality, temp, cpu_temp, gpu_temp);
-                    } else {
-                        printfdg("[GPS data Q:%-5d] Temp. sensor: %.1lf ºC, CPU temp: %.1lf, GPU temp: %.1lf \n", gps_quality, temp, cpu_temp, gpu_temp);
-                    }
-                    dbman_save_gps_data(time(NULL), time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, temp, cpu_temp, gpu_temp);
+    printfd("Ground Station process started. " DBG_BLUE "Local time is %s" DBG_NOCOLOR, ctime(&time_local));
+    printfd("Ground Station location (lat, lon, alt): %.6lf, %.6lf, %.1lf\n", gs_lat, gs_lng, gs_alt);
+    while(!gs_exit) {
+        if(dbman_get_gps_data(&gd) == 0) {
+            if( (last_update_gps < strtol(gd.time_gps, NULL, 10)) ||
+                (last_update_sbc < strtol(gd.time_local, NULL, 10))) {
+                /* A new value arrived: */
+                last_update_gps = strtol(gd.time_gps, NULL, 10);
+                last_update_sbc = strtol(gd.time_local, NULL, 10);
+                printfdg("[GPS data        ] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
+                    gd.lat, gd.lng, gd.sea_alt, gd.geo_alt);
+                printfdg("[GPS data        ] time(SBC) = %s, time(GPS) = %s, vel = %.2lf, course = %.2lf\n",
+                    gd.time_local, gd.time_gps, gd.v_kph, gd.course);
+                if(gd.gpu_temp >= 60.0 || gd.cpu_temp >= 60.0) {
+                    printfe("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", gd.temp, gd.cpu_temp, gd.gpu_temp);
+                } else {
+                    printfdg("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", gd.temp, gd.cpu_temp, gd.gpu_temp);
+                }
 
-                    break;
-                default:
-                    break;
+                /* Calculate new azimuth and elevation: */
+                delta_lat = gs_lat - gd.lat;
+                delta_lng = gs_lng - gd.lng;
+                delta_alt = gd.sea_alt - gs_alt;
+                dist_x = delta_lat * KM_DEG_LAT;
+                dist_y = delta_lng * KM_DEG_LNG * cos(gs_lat);
+                printfd("Delta Lat: %lfº, Lng: %lfº, alt: %.1lfº; Distance: %.2ld km\n",
+                    delta_lat, delta_lng, delta_alt, (sqrt((dist_x * dist_x) + (dist_y * dist_y)) / 1000.0));
+                az = atan(delta_lat / delta_lng) * 180.0 / PI;
+                if((delta_lat > 0.0 && delta_lng < 0.0) || (delta_lat < 0.0 && delta_lng < 0.0)) {
+                    az += 180.0;
+                }
+                el = atan(delta_alt / sqrt((delta_lat * delta_lat) + (delta_lng * delta_lng)));
+                printfo("New AZ: %.2lf, EL: %.2lf\n", az, el);
             }
         } else {
-            printfe("Error reding from the beacon socket\n");
-            sleep(1);
+            printfe("Error retrieving beacon data\n");
         }
+        sleep(1);
     }
 
-    BeaconClose(&beacon_handler);
     return 0;
 }
 
 /***********************************************************************************************//**
  * Rotor control thread routine
  **************************************************************************************************/
-void rotor_control(void)
+void * rotor_control(void * arg)
 {
     int local_az, local_el;
     control_mode mode = MODE_MANUAL;
@@ -137,6 +99,7 @@ void rotor_control(void)
     while(!gs_exit) {
 
     }
+    return NULL;
 }
 
 /***********************************************************************************************//**
