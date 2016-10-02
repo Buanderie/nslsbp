@@ -24,10 +24,8 @@ static int dbman_connect(void)
 {
     if((mysql_handle = mysql_init(NULL)) != NULL) {
         if(mysql_real_connect(mysql_handle, DB_HOST, DB_USR, DB_PASSWD, DB_DBNAME, 0, NULL, 0) != NULL) {
-            printf("DBMAN: Connected\n");
             return 0;
         } else {
-            printf("DBMAN: Could not connect: %s\n", mysql_error(mysql_handle));
             return -1;
         }
     } else {
@@ -50,8 +48,6 @@ static void dbman_disconnect(void)
 static int mysql_query_no_answer(const char *query)
 {
     if(mysql_query(mysql_handle, query) != 0) {
-        printf("DBMAN: Could not execute query: %s\n", mysql_error(mysql_handle));
-        printf("SQL QUERY: %s\n", query);
         return mysql_errno(mysql_handle);
     }
     return 0;
