@@ -77,6 +77,13 @@ int main(int argc, char ** argv)
     time_local = time(NULL);
     printfd("Ground Station process started. " DBG_BLUE "Local time is %s" DBG_NOCOLOR, ctime(&time_local));
     printfd("Ground Station location (lat, lon, alt): %.6lf, %.6lf, %.1lf\n", gs_lat, gs_lng, gs_alt);
+
+    /* Set initial conditions: */
+    dbman_get_gps_data(&gd);
+    last_update_gps = strtol(gd.time_gps, NULL, 10);
+    last_update_sbc = strtol(gd.time_local, NULL, 10);
+
+    /* Start control loop: */
     while(!gs_exit) {
         if(dbman_get_gps_data(&gd) == 0) {
             if( (last_update_gps < strtol(gd.time_gps, NULL, 10)) ||
@@ -151,13 +158,14 @@ int main(int argc, char ** argv)
                 req_az_ccw = false;
             }
         }
-        sleep(1);
+        usleep(500000);
     }
 
     if(fd > 0) {
         close(fd);
     }
 
+    exit(0);
     return 0;
 }
 
@@ -220,7 +228,7 @@ void * rotor_control(void * arg)
                     break;
                 case KEY_MENU_QUIT:
                 case KEY_MENU_QUITC:
-                    exit(0);
+                    gs_exit = true;
                     break;
                 case KEY_MENU_COMMAND:
                     printfw("Command mode not implemented\n");
