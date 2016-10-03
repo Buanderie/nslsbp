@@ -22,13 +22,12 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <math.h>
-#include <string.h>  // String function definitions
-#include <fcntl.h>   // File control definitions
-#include <errno.h>   // Error number definitions
-#include <termios.h> // POSIX terminal control definitions
+#include <string.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-#include <ncurses.h>
 
 #include "dbman.h"
 
@@ -37,12 +36,27 @@
 #define EARTH_RADIUS    6371e3 /* in metres. */
 #define DEG2RAD(x)      (x * PI / 180.0)
 #define RAD2DEG(x)      (x * 180.0 / PI)
+
+#define KEY_MENU_UP         '8'
+#define KEY_MENU_DOWN       '2'
+#define KEY_MENU_LEFT       '4'
+#define KEY_MENU_RIGHT      '6'
+#define KEY_MENU_HOME       '0'
+#define KEY_MENU_CENTER     '5'
+#define KEY_MENU_QUIT       'q'
+#define KEY_MENU_QUITC      'Q'
+#define KEY_MENU_HELP       'h'
+#define KEY_MENU_HELPC      'H'
+#define KEY_MENU_COMMAND    '+'
+#define KEY_MENU_QUERY      '*'
+
 #define DBG_REDB        "\x1b[31;1m"
 #define DBG_REDD        "\x1b[31m"
 #define DBG_GREENB      "\x1b[32;1m"
 #define DBG_GREEND      "\x1b[32m"
 #define DBG_BLUE        "\x1b[34;1m"
 #define DBG_YELLOW      "\x1b[33;1m"
+#define DBG_WHITEB      "\x1b[37;1m"
 #define DBG_GREY        "\x1b[30;1m"
 #define DBG_NOCOLOR     "\x1b[0m"
 
@@ -52,24 +66,24 @@
 /*** MACROS: **************************************************************************************/
 #ifdef GROUND_STATION_DEBUG
     #define printfd(fmt, ...) do { \
-            printf("[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") " \
-            fmt, curr_time_format(), ## __VA_ARGS__); \
+            printf("\r[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") %c " \
+            fmt "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfdg(fmt, ...) do { \
-            printf("[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") " DBG_GREY \
-            fmt DBG_NOCOLOR, curr_time_format(), ## __VA_ARGS__); \
+            printf("\r[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") %c " DBG_GREY \
+            fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfe(fmt, ...) do { \
-            printf("[groundst:%s] (" DBG_REDB    "E" DBG_NOCOLOR ") " \
-            DBG_REDD fmt DBG_NOCOLOR, curr_time_format(), ## __VA_ARGS__); \
+            printf("\r[groundst:%s] (" DBG_REDB    "E" DBG_NOCOLOR ") %c " \
+            DBG_REDD fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfw(fmt, ...) do { \
-            printf("[groundst:%s] (" DBG_YELLOW  "W" DBG_NOCOLOR ") " \
-            fmt, curr_time_format(), ## __VA_ARGS__); \
+            printf("\r[groundst:%s] (" DBG_YELLOW  "W" DBG_NOCOLOR ") %c " \
+            fmt "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfo(fmt, ...) do { \
-            printf("[groundst:%s] (" DBG_GREENB  "o" DBG_NOCOLOR ") " \
-            DBG_GREEND fmt DBG_NOCOLOR, curr_time_format(), ## __VA_ARGS__); \
+            printf("\r[groundst:%s] (" DBG_GREENB  "o" DBG_NOCOLOR ") %c " \
+            DBG_GREEND fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
         } while(0)
 #else
     #define printfd(fmt, ...) do { } while (0)
@@ -89,8 +103,15 @@ extern double az, el;
 extern char tty_dev_name[26];
 extern int fd;
 extern control_mode mode;
+extern struct termios orig_termios;  /* TERMinal I/O Structure */
+extern bool req_el_up;
+extern bool req_el_down;
+extern bool req_az_cw;
+extern bool req_az_ccw;
+extern bool req_go_home;
 
 /*** FUNCTION HEADERS *****************************************************************************/
+void print_menu(void);
 const char * curr_time_format(void);
 void rotors_set_az_el(int fd, double az, double el);
 void rotors_home(int fd);
@@ -100,5 +121,7 @@ void init_rotor_control (int fd);
 int open_rotor_interface(const char * tty_path);
 int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout);
 
+void tty_raw(void);
+void exit_ground_station(void);
 
 #endif

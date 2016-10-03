@@ -22,6 +22,12 @@ double az, el;
 char tty_dev_name[26];
 int fd;
 control_mode mode = MODE_MANUAL;
+struct termios orig_termios;  /* TERMinal I/O Structure */
+bool req_el_up = false;
+bool req_el_down = false;
+bool req_az_cw = false;
+bool req_az_ccw = false;
+bool req_go_home = false;
 
 /***********************************************************************************************//**
  * Program entry point
@@ -41,21 +47,30 @@ int main(int argc, char ** argv)
         printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt>\n");
         return -1;
     }
-
-    /* 26 -> max tty dev name size */
+    /* Save arguments: -------------------------------------------------------------------------- */
     strncpy(tty_dev_name, argv[1], 26);
     gs_lat = DEG2RAD(strtod(argv[2], NULL));
     gs_lng = DEG2RAD(strtod(argv[3], NULL));
     gs_alt = DEG2RAD(strtod(argv[4], NULL));
 
+    /* Configure terminal and user input settings: ---------------------------------------------- */
+
+    if(!isatty(0)) {   /* Check that input is from a tty */
+        printfe("Error, terminal is not a tty\n");
+        return -1;
+    }
+    /* Store current tty settings in orig_termios: */
+    if(tcgetattr(0, &orig_termios) < 0) {
+        printfe("Unable to store original tty settings. Existing now\n");
+        return -1;
+    }
+    if(atexit(exit_ground_station) != 0) {
+        printfw("Could not register exit function\n");
+    }
+    tty_raw();  /* Set tty in raw mode */
 
     fd = open_rotor_interface(tty_dev_name);
     init_rotor_control(fd);
-
-    // initscr();  /* Start curses mode */
-    raw();
-    cbreak();   /* Line buffering disabled, Pass on everty thing to me. */
-    noecho();
 
     pthread_create(&rotors_th, NULL, rotor_control, NULL);
 
@@ -112,33 +127,117 @@ int main(int argc, char ** argv)
         } else {
             printfe("Error retrieving beacon data\n");
         }
+        if(mode == MODE_MANUAL) {
+            if(req_go_home) {
+                az = 0.0;
+                el = 0.0;
+                rotors_home(fd);
+                req_go_home = false;
+            } else if(req_el_up) {
+                el += 5.0;
+                rotors_set_az_el(fd, az, el);
+                req_el_up = false;
+            } else if(req_el_down) {
+                el -= 5.0;
+                rotors_set_az_el(fd, az, el);
+                req_el_down = false;
+            } else if(req_az_cw) {
+                az += 5.0;
+                rotors_set_az_el(fd, az, el);
+                req_az_cw = false;
+            } else if(req_az_ccw) {
+                az -= 5.0;
+                rotors_set_az_el(fd, az, el);
+                req_az_ccw = false;
+            }
+        }
         sleep(1);
     }
 
-    endwin();
-    close(fd);
+    if(fd > 0) {
+        close(fd);
+    }
 
     return 0;
 }
+
 
 /***********************************************************************************************//**
  * Rotor control thread routine
  **************************************************************************************************/
 void * rotor_control(void * arg)
 {
+    int r_op;
+    char buf;
+    double real_az = 0.0, real_el = 0.0;
+
     while(!gs_exit) {
-        switch(getch()) {
-            case KEY_LEFT:
-            case KEY_RIGHT:
-            case KEY_UP:
-            case KEY_DOWN:
-                printfd("Key pressed\n");
-                break;
-            default:
-                break;
+        r_op = read(0, &buf, 1);
+        if(r_op == 1) {
+            switch(buf) {
+                case KEY_MENU_UP:
+                    if(mode == MODE_MANUAL) {
+                        req_el_up = true;
+                    }
+                    break;
+                case KEY_MENU_DOWN:
+                    if(mode == MODE_MANUAL) {
+                        req_el_down = true;
+                    }
+                    break;
+                case KEY_MENU_LEFT:
+                    if(mode == MODE_MANUAL) {
+                        req_az_cw = true;
+                    }
+                    break;
+                case KEY_MENU_RIGHT:
+                    if(mode == MODE_MANUAL) {
+                        req_az_ccw = true;
+                    }
+                    break;
+                case KEY_MENU_HOME:
+                    if(mode == MODE_MANUAL) {
+                        req_go_home = true;
+                    }
+                    break;
+                case KEY_MENU_CENTER:
+                    if(mode == MODE_AUTO) {
+                        mode = MODE_MANUAL;
+                        printfd("Manual mode set\n");
+                    } else {
+                        mode = MODE_AUTO;
+                        printfd("Auto mode set\n");
+                    }
+                    break;
+                case KEY_MENU_QUERY:
+                    printfd("Set   azimuth = %.2lf º;  elevation = %.2lf º\n", az, el);
+                    // rotors_get_az_el(&real_az, &real_el);
+                    printfd("Real  azimuth = %.2lf º;  elevation = %.2lf º\n", real_az, real_el);
+                    break;
+                case KEY_MENU_HELP:
+                case KEY_MENU_HELPC:
+                    print_menu();
+                    break;
+                case KEY_MENU_QUIT:
+                case KEY_MENU_QUITC:
+                    exit(0);
+                    break;
+                case KEY_MENU_COMMAND:
+                    printfw("Command mode not implemented\n");
+                    break;
+            }
         }
     }
     return NULL;
+}
+
+void print_menu(void) {
+    printfd(DBG_WHITEB "MENU   COMMAND            KEY      COMMAND             KEY\n" DBG_NOCOLOR);
+    printfd("       Azimuth CCW (+5º)  [" DBG_REDD "4" DBG_NOCOLOR "]      Azimuth CW (-5º)    [" DBG_REDD "6" DBG_NOCOLOR "]\n");
+    printfd("       Elevation Up (+5º) [" DBG_REDD "8" DBG_NOCOLOR "]      Elevation Down(-5º) [" DBG_REDD "2" DBG_NOCOLOR "]\n");
+    printfd("       Go home            [" DBG_REDD "0" DBG_NOCOLOR "]      Mode switch         [" DBG_REDD "5" DBG_NOCOLOR "]\n");
+    printfd("       Query az./el.      [" DBG_REDD "*" DBG_NOCOLOR "]      Help                [" DBG_REDD "H" DBG_NOCOLOR "]\n");
+    printfd("       Enter cmd.         [" DBG_REDD "+" DBG_NOCOLOR "]      QUIT                [" DBG_REDD "Q" DBG_NOCOLOR "]\n");
 }
 
 /***********************************************************************************************//**
@@ -148,7 +247,7 @@ void rotors_set_az_el(int fd, double v_az, double v_el)
 {
     char buf[52];
     int len = sprintf(buf+2, "%lf,%lf", v_az, v_el);
-    if (len > 0){
+    if(len > 0) {
         printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
         /* length of the floats + the type of command */
         buf[0] = (char) len + 1;
@@ -172,7 +271,7 @@ void rotors_home(int fd)
     int len = 0;
     buf[0] = (char) len + 1;
     buf[1] = (char) 'H';
-    printfd("Setting rotors home...\n", v_az, v_el);
+    printfd("Setting rotors home...\n");
     write(fd, buf, len + 2);
     /* Recv the yack/nack */
     if ((uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
@@ -336,4 +435,39 @@ void init_rotor_control (int fd)
             printfe("[Init rotor control] Error reading from UART\n");
         }
     } while(ret != 0 && ++limit < 4);
+}
+
+
+
+/***********************************************************************************************//**
+ * Resets TTY setup to leave it in its original state.
+ **************************************************************************************************/
+void exit_ground_station(void)
+{
+    tcsetattr(0, TCSAFLUSH, &orig_termios);
+}
+/***********************************************************************************************//**
+ * Configures the TTY in "raw" mode.
+ **************************************************************************************************/
+void tty_raw(void)
+{
+    struct termios raw;
+
+    raw = orig_termios;  /* Copy original and then modify below */
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    raw.c_oflag &= ~(OPOST);
+    raw.c_cflag |= (CS8);
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    // raw.c_cc[VMIN] = 5; raw.c_cc[VTIME] = 8;
+    // raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;
+    // raw.c_cc[VMIN] = 2; raw.c_cc[VTIME] = 0;
+    raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 5; /* Return condition, (min number of bytes = 0):
+                                              * timer after 0 bytes or .5 seconds after first byte
+                                              * seen.
+                                              */
+
+    /* Put terminal in raw mode after flushing: */
+    if (tcsetattr(0, TCSAFLUSH, &raw) < 0) {
+        printfe("Could not set the tty in raw mode");
+    }
 }
