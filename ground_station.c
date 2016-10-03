@@ -251,19 +251,51 @@ void print_menu(void) {
 /***********************************************************************************************//**
  * Set a given azimuth and elevation to the rotors.
  **************************************************************************************************/
+void rotors_get_az_el(int fd, double * v_az, double * v_el)
+{
+    char f1[30];
+    char f2[30];
+    char buf[52];
+    if (len > 0){
+        printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
+        /* length of the floats + the type of command */
+        buf[0] = (char) 'G';
+        buf[1] = (char) '\n';
+        write(fd, buf, 2);
+        /* Recv the yack/nack */
+        if (uart_read(fd, (unsigned char *) buf, &len, 1000 * 1000) == 0){
+            buf[len - 1] = '\0';
+            if (strcmp("YACK", buf) != 0){
+                printfe("[Set az/el] Error setting position\n");
+            }else{
+                sscanf((const char *)buf, "%[^,] %*[,] %[^,] %*[,]", f1, f2);
+                *v_az = atof(f1);
+                *v_el = atof(f2);
+            }
+        }else{
+            printfe("[Set az/el] Error reading from UART\n");
+        }
+    }
+}
+
+/***********************************************************************************************//**
+ * Set a given azimuth and elevation to the rotors.
+ **************************************************************************************************/
 void rotors_set_az_el(int fd, double v_az, double v_el)
 {
     char buf[52];
-    int len = sprintf(buf+2, "%lf,%lf", v_az, v_el);
-    if(len > 0) {
+    int len = sprintf(buf+1, "%lf,%lf\n", v_az, v_el);
+    if (len > 0){
         printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
         /* length of the floats + the type of command */
-        buf[0] = (char) len + 1;
-        buf[1] = (char) 'G';
-        write(fd, buf, len + 2);
+        buf[0] = (char) 'S';
+        write(fd, buf, len + 1);
         /* Recv the yack/nack */
-        if (uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000) == 0){
-            buf[4] = '\0';
+        if (uart_read(fd, (unsigned char *) buf, &len, 1000 * 1000) == 0){
+            buf[len - 1] = '\0';
+            if (strcmp("YACK", buf) != 0){
+                printfe("[Set az/el] Error setting position\n");
+            }
         }else{
             printfe("[Set az/el] Error reading from UART\n");
         }
@@ -276,16 +308,29 @@ void rotors_set_az_el(int fd, double v_az, double v_el)
 void rotors_home(int fd)
 {
     char buf[52];
-    int len = 0;
-    buf[0] = (char) len + 1;
-    buf[1] = (char) 'H';
-    printfd("Setting rotors home...\n");
-    write(fd, buf, len + 2);
+    /* this indicates max length and ret length */
+    int len = 5;
+    buf[0] = (char) 'H';
+    printfd("Setting rotors home...\n", v_az, v_el);
+    write(fd, buf, 2);
     /* Recv the yack/nack */
-    if ((uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
-        buf[4] = '\0';
+    /* up to 2 minutes of timeout */
+    if ((uart_read(fd, (unsigned char *) buf, &len, 1 * 1000 * 1000)) == 0){
+        buf[len - 1] = '\0';
+        if (strcmp("YACK", buf) == 0){
+            if ((uart_read(fd, (unsigned char *) buf, &len, 120 * 1000 * 1000)) == 0){
+                buf[len - 1] = '\0';
+                if (strcmp("DONE", buf) != 0){
+                    printfe("[Rotors home] Error sending command -> Autohome does not work\n");
+                }
+            }else{
+                printfe("[Rotors home] Error reading from UART -> Autohome timedout\n");
+            }
+        }else{
+           printfe("[Rotors home] Error sending command -> No AutoHome set\n"); 
+        }
     }else{
-        printfe("[Rotors home] Error reading from UART\n");
+        printfe("[Rotors home] Error reading from UART -> No AutoHome set\n");
     }
 }
 
@@ -310,28 +355,29 @@ const char * curr_time_format(void)
 /***********************************************************************************************//**
  * Performs a read with timeouts.
  **************************************************************************************************/
-int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
+int uart_read(int fd, unsigned char *buffer, int * size, int timeout)
 {
     int r_op, sel_op;
     fd_set uart_fd;
     struct timeval max_time;    /* 1-byte timeout represented as a timeval struct. */
     struct timeval end;         /* Time at which the final timeout will occur. */
     int diff_time;              /* Time difference between select and read (without timeout), in microseconds. */
-
+    int buf_size = *size;
+    int accumulated_size = 0;
+    
     if(timeout > 0)
     {
         // Timed read:
         // -- Prepare counters
         gettimeofday(&end, NULL);
-        end.tv_sec += (timeout / 1000000);
-        end.tv_usec += (timeout % 1000000);
+        end.tv_sec = (timeout / 1000000);
+        end.tv_usec = (timeout % 1000000);
 
         max_time.tv_sec = (timeout / 1000000);
         max_time.tv_usec = (timeout % 1000000);
 
-        while(buf_size > 0)
-        {
-            // Prepare select structures
+        do{
+            // Prpare select structures
             FD_ZERO(&uart_fd);
             FD_SET(fd, &uart_fd);
 
@@ -347,9 +393,9 @@ int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
             }
 
             // Read from UART:
-            if((r_op = read(fd, buffer++, 1)) == 1)
+            if((r_op = read(fd, buffer+accumulated_size, 1)) == 1)
             {
-                --buf_size;
+                accumulated_size++;
             }else{
                 return -1;
             }
@@ -361,24 +407,9 @@ int uart_read(int fd, unsigned char *buffer, int buf_size, int timeout)
             // Calculate/set the new timeout:
             max_time.tv_sec  = diff_time / 1000000;
             max_time.tv_usec = diff_time % 1000000;
-        }
-    }else{
-        // No timeouts:
-        while(buf_size > 0)
-        {
-            // Read from UART:
-            if((r_op = read(fd, buffer++, 1)) == 1)
-            {
-                --buf_size;
-            }else{
-                if(errno == EAGAIN || errno == EWOULDBLOCK)
-                {
-                    return -1;
-                }else{
-                    return -1;
-                }
-            }
-        }
+
+        }while( (buffer[accumulated_size - 1] != '\n') && ((accumulated_size - 1) < buf_size) );
+        *size = accumulated_size;
     }
     return 0;
 }
@@ -423,15 +454,15 @@ void init_rotor_control (int fd)
 {
     char buf[52];
     int ret;
-    int len = 0;
+    int len = 5;
     int limit = 0;
     do{
-        buf[0] = (char) len + 1;
-        buf[1] = (char) 'I';
-        write(fd, buf, len + 2);
+        buf[0] = (char) 'I';
+        buf[1] = (char) '\n';
+        write(fd, buf, 2);
         /* Recv the yack/nack */
-        if ((ret = uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
-            buf[4] = '\0';
+        if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
+            buf[len - 1] = '\0';
             if (strcmp(buf, "NACK") == 0) {
                 printfd("Rotors successfully initialized\n");
                 return;
