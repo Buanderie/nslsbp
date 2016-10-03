@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
     strncpy(tty_dev_name, argv[1], 26);
     gs_lat = DEG2RAD(strtod(argv[2], NULL));
     gs_lng = DEG2RAD(strtod(argv[3], NULL));
-    gs_alt = DEG2RAD(strtod(argv[4], NULL));
+    gs_alt = strtod(argv[4], NULL);
 
     /* Configure terminal and user input settings: ---------------------------------------------- */
 
@@ -123,7 +123,8 @@ int main(int argc, char ** argv)
                  */
                 y = sin(delta_lng) * cos(gd.lng);
                 x = (cos(gs_lat) * sin(gd.lat)) - (sin(gs_lat) * cos(gd.lat) * cos(delta_lng));
-                az = fmod((RAD2DEG(atan2(y, x)) + 180.0), 360.0);
+                az = RAD2DEG(atan2(y, x));
+                az = fmod((az + 360.0), 360.0);
 
                 el = RAD2DEG(atan((delta_alt) / dist));
                 printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
@@ -247,7 +248,7 @@ void * rotor_control(void * arg)
                     break;
                 case KEY_MENU_QUERY:
                     printfd("Set   azimuth = %.2lf º;  elevation = %.2lf º\n", az, el);
-                    // rotors_get_az_el(&real_az, &real_el);
+                    rotors_get_az_el(fd, &real_az, &real_el);
                     printfd("Real  azimuth = %.2lf º;  elevation = %.2lf º\n", real_az, real_el);
                     break;
                 case KEY_MENU_HELP:
@@ -284,22 +285,18 @@ void rotors_get_az_el(int fd, double * v_az, double * v_el)
     char f1[30];
     char f2[30];
     char buf[52];
-    int len = 5;
+    int len = 52;
 
     /* length of the floats + the type of command */
     buf[0] = (char) 'G';
     buf[1] = (char) '\n';
     write(fd, buf, 2);
     /* Recv the yack/nack */
-    if (uart_read(fd, (unsigned char *) buf, &len, 1000 * 1000) == 0){
+    if (uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000) == 0){
         buf[len - 1] = '\0';
-        if (strcmp("YACK", buf) != 0){
-            printfe("[Set az/el] Error setting position\n");
-        }else{
-            sscanf((const char *)buf, "%[^,] %*[,] %[^,] %*[,]", f1, f2);
-            *v_az = atof(f1);
-            *v_el = atof(f2);
-        }
+        sscanf((const char *)buf, "%[^,] %*[,] %[^,] %*[,]", f1, f2);
+        *v_az = atof(f1);
+        *v_el = atof(f2);
     }else{
         printfe("[Set az/el] Error reading from UART\n");
     }
@@ -311,7 +308,11 @@ void rotors_get_az_el(int fd, double * v_az, double * v_el)
 void rotors_set_az_el(int fd, double v_az, double v_el)
 {
     char buf[52];
-    int len = sprintf(buf+1, "%lf,%lf\n", v_az, v_el);
+    int len;
+
+    if(v_az < 0.0) v_az = 0.0;
+    if(v_el < 0.0) v_el = 0.0;
+    len = sprintf(buf+1, "%lf,%lf\n", v_az, v_el);
     if (len > 0){
         printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
         /* length of the floats + the type of command */

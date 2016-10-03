@@ -28,6 +28,7 @@ int vitow_error_count = 0;
 int main(int argc, char **argv)
 {
     int retval, pid;
+    char vitow_saved_filename[100];
 
 restart:
     if(pipe(pipe0) < 0) {
@@ -69,7 +70,8 @@ restart:
             close(pipe1[WRITE]);    /* stdout is now redirected to Pipe 1 (W). */
             close(pipe1[READ]);     /* tee does not read from Pipe 1. */
 
-            execlp("tee", "tee", "vitow_input", (char *)NULL);
+            sprintf(vitow_saved_filename, "vitow_input_%ld", time(NULL));
+            execlp("tee", "tee", vitow_saved_filename, (char *)NULL);
 
         } else if(pid_tee > 0) {
 
