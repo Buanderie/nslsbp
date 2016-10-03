@@ -223,12 +223,12 @@ void * rotor_control(void * arg)
                     break;
                 case KEY_MENU_LEFT:
                     if(mode == MODE_MANUAL) {
-                        req_az_cw = true;
+                        req_az_ccw = true;
                     }
                     break;
                 case KEY_MENU_RIGHT:
                     if(mode == MODE_MANUAL) {
-                        req_az_ccw = true;
+                        req_az_cw = true;
                     }
                     break;
                 case KEY_MENU_HOME:
