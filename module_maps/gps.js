@@ -22,6 +22,12 @@ function update_gps_tables() {
     cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_temp');
     cell.innerHTML = gps_extra[gps_extra.length-1].temp;
 
+    cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_cpu_temp');
+    cell.innerHTML = gps_extra[gps_extra.length-1].cpu_temp;
+
+    cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_gpu_temp');
+    cell.innerHTML = gps_extra[gps_extra.length-1].gpu_temp;
+
     cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_sea');
     cell.innerHTML = gps_extra[gps_extra.length-1].sea;
 

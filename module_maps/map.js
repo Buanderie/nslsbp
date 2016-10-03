@@ -36,7 +36,7 @@ function initMap() {
     map_marker.setMap(map);
     lineCoordinatesPath.setMap(map);
 
-    var interval = window.setInterval(download_data, 5000);
+    var interval = window.setInterval(download_data, 1000);
 }
 function redraw() {
     // var waypoints = lineCoordinatesPath.getPath();
@@ -69,7 +69,8 @@ function download_data() {
                 time_line.push({rx: parseFloat(gps[1]), gps: parseFloat(gps[2]),});
                 gps_extra.push({kph: parseFloat(gps[5]), sea: parseFloat(gps[6]),
                                 geo: parseFloat(gps[7]), course: parseFloat(gps[8]),
-                                temp: parseFloat(gps[9])});
+                                temp: parseFloat(gps[9]), cpu_temp: parseFloat(gps[10]),
+                                gpu_temp: parseFloat(gps[11])});
             });
             if(new_data.length > 0){redraw();}
         }

@@ -13,8 +13,9 @@
     $sql = "SELECT * FROM ".TABLE_GPS." WHERE `time_gps` > {$_GET['date']} ORDER BY `time_gps` ASC";
     $query = $db->query($sql);
     while($data = $db->fetch_array($query)) {
-        $gps[] = [$data['row_id'], $data['time_local'], $data['time_gps'], $data['lat'], $data['lng'],
-                  $data['v_kph'], $data['sea_alt'], $data['geo_alt'], $data['course'], $data['temp']];
+        $gps[] = [$data['row_id'], $data['time_local'], $data['time_gps'], $data['lat'],
+                  $data['lng'], $data['v_kph'], $data['sea_alt'], $data['geo_alt'],
+                  $data['course'], $data['temp'], $data['cpu_temp'], $data['gpu_temp']];
     }
 
 	// Disconnecting db
