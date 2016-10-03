@@ -141,20 +141,48 @@ int main(int argc, char ** argv)
                 rotors_home(fd);
                 req_go_home = false;
             } else if(req_el_up) {
-                el += 5.0;
-                rotors_set_az_el(fd, az, el);
+                if(el < 85.0) {
+                    el += 5.0;
+                    rotors_set_az_el(fd, az, el);
+                } else if(el > 85.0 && el <= 90.0) {
+                    el = 90.0;
+                    rotors_set_az_el(fd, az, el);
+                } else {
+                    printfw("Elevation is 90º\n");
+                }
                 req_el_up = false;
             } else if(req_el_down) {
-                el -= 5.0;
-                rotors_set_az_el(fd, az, el);
+                if(el > 5.0) {
+                    el -= 5.0;
+                    rotors_set_az_el(fd, az, el);
+                } else if(el > 0.0 && el <= 5.0) {
+                    el = 0.0;
+                    rotors_set_az_el(fd, az, el);
+                } else {
+                    printfw("Elevation is 0º\n");
+                }
                 req_el_down = false;
             } else if(req_az_cw) {
-                az += 5.0;
-                rotors_set_az_el(fd, az, el);
+                if(az < 354.0) {
+                    az += 5.0;
+                    rotors_set_az_el(fd, az, el);
+                } else if(az > 354.0 && az <= 359.0) {
+                    az = 359.0;
+                    rotors_set_az_el(fd, az, el);
+                } else {
+                    printfw("Azimuth is 359º\n");
+                }
                 req_az_cw = false;
             } else if(req_az_ccw) {
-                az -= 5.0;
-                rotors_set_az_el(fd, az, el);
+                if(az > 5.0) {
+                    az -= 5.0;
+                    rotors_set_az_el(fd, az, el);
+                } else if(az > 0.0 && az <= 5.0) {
+                    az = 0.0;
+                    rotors_set_az_el(fd, az, el);
+                } else {
+                    printfw("Azimuth is 0º\n");
+                }
                 req_az_ccw = false;
             }
         }
@@ -256,25 +284,24 @@ void rotors_get_az_el(int fd, double * v_az, double * v_el)
     char f1[30];
     char f2[30];
     char buf[52];
-    if (len > 0){
-        printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
-        /* length of the floats + the type of command */
-        buf[0] = (char) 'G';
-        buf[1] = (char) '\n';
-        write(fd, buf, 2);
-        /* Recv the yack/nack */
-        if (uart_read(fd, (unsigned char *) buf, &len, 1000 * 1000) == 0){
-            buf[len - 1] = '\0';
-            if (strcmp("YACK", buf) != 0){
-                printfe("[Set az/el] Error setting position\n");
-            }else{
-                sscanf((const char *)buf, "%[^,] %*[,] %[^,] %*[,]", f1, f2);
-                *v_az = atof(f1);
-                *v_el = atof(f2);
-            }
+    int len = 5;
+
+    /* length of the floats + the type of command */
+    buf[0] = (char) 'G';
+    buf[1] = (char) '\n';
+    write(fd, buf, 2);
+    /* Recv the yack/nack */
+    if (uart_read(fd, (unsigned char *) buf, &len, 1000 * 1000) == 0){
+        buf[len - 1] = '\0';
+        if (strcmp("YACK", buf) != 0){
+            printfe("[Set az/el] Error setting position\n");
         }else{
-            printfe("[Set az/el] Error reading from UART\n");
+            sscanf((const char *)buf, "%[^,] %*[,] %[^,] %*[,]", f1, f2);
+            *v_az = atof(f1);
+            *v_el = atof(f2);
         }
+    }else{
+        printfe("[Set az/el] Error reading from UART\n");
     }
 }
 
@@ -310,24 +337,24 @@ void rotors_home(int fd)
     char buf[52];
     /* this indicates max length and ret length */
     int len = 5;
-    buf[0] = (char) 'H';
-    printfd("Setting rotors home...\n", v_az, v_el);
+    buf[0] = 'A';
+    printfd("Setting rotors home...\n");
     write(fd, buf, 2);
     /* Recv the yack/nack */
     /* up to 2 minutes of timeout */
-    if ((uart_read(fd, (unsigned char *) buf, &len, 1 * 1000 * 1000)) == 0){
+    if((uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000)) == 0) {
         buf[len - 1] = '\0';
-        if (strcmp("YACK", buf) == 0){
-            if ((uart_read(fd, (unsigned char *) buf, &len, 120 * 1000 * 1000)) == 0){
+        if(strcmp("YACK", buf) == 0){
+            if((uart_read(fd, (unsigned char *) buf, &len, 120 * 1000 * 1000)) == 0) {
                 buf[len - 1] = '\0';
-                if (strcmp("DONE", buf) != 0){
+                if(strcmp("DONE", buf) != 0) {
                     printfe("[Rotors home] Error sending command -> Autohome does not work\n");
                 }
             }else{
                 printfe("[Rotors home] Error reading from UART -> Autohome timedout\n");
             }
         }else{
-           printfe("[Rotors home] Error sending command -> No AutoHome set\n"); 
+           printfe("[Rotors home] Error sending command -> No AutoHome set\n");
         }
     }else{
         printfe("[Rotors home] Error reading from UART -> No AutoHome set\n");
@@ -364,7 +391,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, int timeout)
     int diff_time;              /* Time difference between select and read (without timeout), in microseconds. */
     int buf_size = *size;
     int accumulated_size = 0;
-    
+
     if(timeout > 0)
     {
         // Timed read:
@@ -464,7 +491,7 @@ void init_rotor_control (int fd)
         if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
             buf[len - 1] = '\0';
             if (strcmp(buf, "NACK") == 0) {
-                printfd("Rotors successfully initialized\n");
+                printfo("Rotors successfully initialized\n");
                 return;
             } else {
                 printfd("Unable to initialize the antenna rotors\n");
