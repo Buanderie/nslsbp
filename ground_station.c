@@ -21,6 +21,7 @@ bool gs_exit = false;
 double az, el;
 char tty_dev_name[26];
 int fd;
+control_mode mode = MODE_MANUAL;
 
 /***********************************************************************************************//**
  * Program entry point
@@ -36,8 +37,8 @@ int main(int argc, char ** argv)
     double aux, arc, x, y;
 
     if(argc != 5) {
-        printfe("Wrong number of arguments. Local (GS) latitude, longitude and altitude are required\n");
-        printfd("Issue: ./ground_station /dev/tty... <lat> <lon> <alt>\n");
+        printfe("Wrong number of arguments. Local (GS) device, latitude, longitude and altitude are required\n");
+        printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt>\n");
         return -1;
     }
 
@@ -50,6 +51,11 @@ int main(int argc, char ** argv)
 
     fd = open_rotor_interface(tty_dev_name);
     init_rotor_control(fd);
+
+    // initscr();  /* Start curses mode */
+    raw();
+    cbreak();   /* Line buffering disabled, Pass on everty thing to me. */
+    noecho();
 
     pthread_create(&rotors_th, NULL, rotor_control, NULL);
 
@@ -99,8 +105,8 @@ int main(int argc, char ** argv)
 
                 el = RAD2DEG(atan((delta_alt) / dist));
                 printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
-                if(mode == AUTO) {
-                    rotors_set_az_el(az, el);
+                if(mode == MODE_AUTO) {
+                    rotors_set_az_el(fd, az, el);
                 }
             }
         } else {
@@ -108,6 +114,9 @@ int main(int argc, char ** argv)
         }
         sleep(1);
     }
+
+    endwin();
+    close(fd);
 
     return 0;
 }
@@ -117,11 +126,17 @@ int main(int argc, char ** argv)
  **************************************************************************************************/
 void * rotor_control(void * arg)
 {
-//    int local_az, local_el;
-    // control_mode mode = MODE_MANUAL;
-
     while(!gs_exit) {
-        sleep(1);
+        switch(getch()) {
+            case KEY_LEFT:
+            case KEY_RIGHT:
+            case KEY_UP:
+            case KEY_DOWN:
+                printfd("Key pressed\n");
+                break;
+            default:
+                break;
+        }
     }
     return NULL;
 }
@@ -134,20 +149,18 @@ void rotors_set_az_el(int fd, double v_az, double v_el)
     char buf[52];
     int len = sprintf(buf+2, "%lf,%lf", v_az, v_el);
     if (len > 0){
+        printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
         /* length of the floats + the type of command */
         buf[0] = (char) len + 1;
         buf[1] = (char) 'G';
-        printf("Query len: %02x ---> Query: %s\n", buf[0], buf);
         write(fd, buf, len + 2);
         /* Recv the yack/nack */
         if (uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000) == 0){
             buf[4] = '\0';
-            printf("Received: %s\n", buf);
         }else{
-            printf("No data on arduino...\n");
+            printfe("[Set az/el] Error reading from UART\n");
         }
     }
-    return;
 }
 
 /***********************************************************************************************//**
@@ -159,18 +172,14 @@ void rotors_home(int fd)
     int len = 0;
     buf[0] = (char) len + 1;
     buf[1] = (char) 'H';
-    printf("Query len: %u ---> Query: %s\n", (unsigned int) buf[0], buf+1);
+    printfd("Setting rotors home...\n", v_az, v_el);
     write(fd, buf, len + 2);
     /* Recv the yack/nack */
-    printf("Received: %s\n", buf);
     if ((uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
         buf[4] = '\0';
-        printf("Received: %s\n", buf);
     }else{
-        printf("No data on arduino...\n");
+        printfe("[Rotors home] Error reading from UART\n");
     }
-    printfo("Antenna rotors calibrated\n");
-    return;
 }
 
 
@@ -275,7 +284,7 @@ int open_rotor_interface(const char * tty_path)
     fd = open(tty_path, O_RDWR | O_NOCTTY);
 
     if (fd == -1){
-        fprintf(stderr, "open_port: Unable to open %s %s\n", tty_path, strerror(errno));
+        printfe("Unable to open %s %s\n", tty_path, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -316,10 +325,15 @@ void init_rotor_control (int fd)
         /* Recv the yack/nack */
         if ((ret = uart_read(fd, (unsigned char *) buf, 4, 1000 * 1000)) == 0){
             buf[4] = '\0';
-            if (strcmp(buf, "NACK") == 0){
+            if (strcmp(buf, "NACK") == 0) {
+                printfd("Rotors successfully initialized\n");
+                return;
+            } else {
+                printfd("Unable to initialize the antenna rotors\n");
                 return;
             }
         }else{
+            printfe("[Init rotor control] Error reading from UART\n");
         }
-    }while(ret != 0 && ++limit < 4);
+    } while(ret != 0 && ++limit < 4);
 }

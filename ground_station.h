@@ -28,6 +28,7 @@
 #include <termios.h> // POSIX terminal control definitions
 #include <sys/time.h>
 #include <sys/ioctl.h>
+#include <ncurses.h>
 
 #include "dbman.h"
 
@@ -47,12 +48,6 @@
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
 
-/*** GLOBAL VARIABLES: ****************************************************************************/
-extern double gs_lat;
-extern double gs_lng;
-extern double gs_alt;
-extern bool gs_exit;
-extern double az, el;
 
 /*** MACROS: **************************************************************************************/
 #ifdef GROUND_STATION_DEBUG
@@ -81,7 +76,19 @@ extern double az, el;
 #endif
 
 /*** TYPEDEFS *************************************************************************************/
-typedef enum  {MODE_MANUAL, MODE_AUTO} control_mode;
+typedef enum control_mode {MODE_MANUAL, MODE_AUTO} control_mode;
+
+
+
+/*** GLOBAL VARIABLES: ****************************************************************************/
+extern double gs_lat;
+extern double gs_lng;
+extern double gs_alt;
+extern bool gs_exit;
+extern double az, el;
+extern char tty_dev_name[26];
+extern int fd;
+extern control_mode mode;
 
 /*** FUNCTION HEADERS *****************************************************************************/
 const char * curr_time_format(void);
