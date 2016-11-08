@@ -1,3 +1,4 @@
+#if 0
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +8,7 @@
 
 #include <nmea.h>
 #include <gps.h>
+#include <pcsensor.h>
 
 #include "../../libraries/dbman.h"
 
@@ -96,7 +98,7 @@ SetBeaconMessage()
 		data.gpu_temp 	= gpu_temp;
 
 		dbman_save_gps_data(&data);
-		/*BeaconWrite(&bmh, str, strlen(str)+1, GPS_TEMP);*/
+		/* BeaconWrite(&bmh, str, strlen(str)+1, GPS_TEMP); */
 	}
 }
 
@@ -262,3 +264,5 @@ ProcessTemperature()
     /* Reads external USB temperature sensor: */
 	ReadUSBTemp(&sensor_temp);
 }
+
+#endif

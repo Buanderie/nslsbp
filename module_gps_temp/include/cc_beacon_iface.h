@@ -19,23 +19,17 @@ typedef enum MsgSource{
 	SYSTEM,
 }MsgSource;
 
-typedef enum MessagePurpose{
+typedef enum ConnectionPurpose{
 	beacon_sender,
 	beacon_receiver,
-}MessagePurpose;
-
-typedef struct BeaconMessageHandler{
-	int fd;
-	struct sockaddr_in addr;
-	socklen_t len;
-}BeaconMessageHandler;
+}ConnectionPurpose;
 
 /* Init functions */
-int 	BeaconConnect (const char * ip, const char * port, BeaconMessageHandler * bmh, MessagePurpose trx);
-void 	BeaconClose (BeaconMessageHandler * bmh);
+int 	BeaconConnect (const char * ip, const char * port, ConnectionPurpose trx);
+void 	BeaconClose (int fd);
 
 /* Reading functions */
-int 	BeaconWrite (BeaconMessageHandler * bmh, BYTE * msg, int32_t len, MsgSource m);
-int 	BeaconRead (BeaconMessageHandler * bmh, BYTE * msg, int32_t maxbuflen, MsgSource * m); /* returns the source if wanted */
+int 	BeaconWrite (int fd, const void * msg, int32_t len);
+int 	BeaconRead (int fd, void * msg, int32_t maxbuflen); /* returns the source if wanted */
 
 #endif

@@ -9,6 +9,10 @@
 
 #include <gps.h>
 
+#include <sensors.h>
+
+#include "../../libraries/dbman.h"
+
 static enum Overhead{
 	GPS_OVERHEAD 	= 8,
 	CRC_OVERHEAD	= 4,
@@ -348,7 +352,8 @@ static void clean_read_buffer(int fd)
 int
 GetGPSMessage(
 	int uart_fd,
-	MessageType t)
+	MessageType t,
+	unsigned char * msg_out)
 {	
 	int limit = 4;
 	int recv_limit = 512;
@@ -360,6 +365,7 @@ GetGPSMessage(
 	int i;
 	int timeout = 0;
 	int recv_timeout = 0;
+	int return_value = -1;
 	int message_delivered = 0;
 	
 	clean_read_buffer(uart_fd);
@@ -367,10 +373,28 @@ GetGPSMessage(
 	{
 		if (timeout > 1)
 		{
-			fprintf(stderr, "Message not delivered, trying again\n");
+			fprintf(stderr, "GET Message not delivered, trying again\n");
 		}
 		switch (t)
 		{
+			case CFG_DISABLE_NMEA:
+				memcpy(buffer, UBX_header, sizeof(UBX_header));
+				tmp = 0x06; /* class */
+				memcpy(buffer+2, &tmp, 1);
+				tmp = 0x00; /* id */
+				memcpy(buffer+3, &tmp, 1);
+				/* HEADER END */
+				/* Length equal to 0 to GET */
+				msg_len = 0;
+				buffer[4] = 0;
+				buffer[5] = 0;
+				GPSChecksum(buffer + msg_len + FIRST_CRC,  	/* First CRC character */
+							buffer + msg_len + SECOND_CRC, 	/* Second CRC character */
+							buffer + 2, 					/* buffer without sync word */
+							msg_len + CRC_OVERHEAD);		/* payload length + len (2) + class (1) + id (1) */
+				/* Message is complete now */
+				write(uart_fd, buffer, msg_len + GPS_OVERHEAD);	
+			break;
 			case CFG_NAV5:
 				/* HEADER START */
 				memcpy(buffer, UBX_header, sizeof(UBX_header));
@@ -381,6 +405,7 @@ GetGPSMessage(
 				/* HEADER END */
 				/* Length equal to 0 to GET */
 				msg_len = 0;
+				/* this is the length (int16) */
 				buffer[4] = 0;
 				buffer[5] = 0;
 				GPSChecksum(buffer + msg_len + FIRST_CRC,  	/* First CRC character */
@@ -401,6 +426,7 @@ GetGPSMessage(
 				/* HEADER END */
 				/* Length equal to 0 to GET */
 				msg_len = 0;
+				/* this is the length (int16) */
 				buffer[4] = 0;
 				buffer[5] = 0;
 				GPSChecksum(buffer + msg_len + FIRST_CRC,  	/* First CRC character */
@@ -421,6 +447,7 @@ GetGPSMessage(
 				/* HEADER END */
 				/* Length equal to 0 to GET */
 				msg_len = 0;
+				/* this is the length (int16) */
 				buffer[4] = 0;
 				buffer[5] = 0;
 				GPSChecksum(buffer + msg_len + FIRST_CRC,  	/* First CRC character */
@@ -429,6 +456,29 @@ GetGPSMessage(
 							msg_len + CRC_OVERHEAD);		/* payload length + len (2) + class (1) + id (1) */
 				/* Message is complete now */
 				write(uart_fd, buffer, msg_len + GPS_OVERHEAD);
+			break;
+			case NAV_PVT:
+				/* HEADER START */
+				memcpy(buffer, UBX_header, sizeof(UBX_header));
+				tmp = 0x01; /* class */
+				memcpy(buffer+2, &tmp, 1);
+				tmp = 0x07; /* id -> PVT message */
+				memcpy(buffer+3, &tmp, 1);
+				/* HEADER END */
+				/* Length equal to 0 to GET */
+				msg_len = 0;
+				/* this is the length (int16) */
+				buffer[4] = 0;
+				buffer[5] = 0;
+				GPSChecksum(buffer + msg_len + FIRST_CRC,  	/* First CRC character */
+							buffer + msg_len + SECOND_CRC, 	/* Second CRC character */
+							buffer + 2, 					/* buffer without sync word */
+							msg_len + CRC_OVERHEAD);		/* payload length + len (2) + class (1) + id (1) */
+				/* Message is complete now */
+				write(uart_fd, buffer, msg_len + GPS_OVERHEAD);
+			break;
+			default:
+				return -1;
 			break;
 		}
 		recv_timeout = 0;
@@ -440,12 +490,23 @@ GetGPSMessage(
 				{
 					switch (t)
 					{
+						case CFG_DISABLE_NMEA:
+							if (recv_message[0] == 0x06 && recv_message[1] == 0x00)
+							{
+								fprintf(stderr, "CFG NMEA OFF received:\n");
+								PrintGPSUBXMessage(recv_message, rx_len);
+								message_delivered = 1;
+								return_value = 0;
+							}
+						break;
+
 						case CFG_NAV5:
 							if (recv_message[0] == 0x06 && recv_message[1] == 0x24)
 							{
 								fprintf(stderr, "CFG NAV5 received:\n");
 								PrintGPSUBXMessage(recv_message, rx_len);
 								message_delivered = 1;
+								return_value = 0;
 							}
 						break;
 
@@ -455,6 +516,7 @@ GetGPSMessage(
 								fprintf(stderr, "CFG NAVX5 received:\n");
 								PrintGPSUBXMessage(recv_message, rx_len);
 								message_delivered = 1;
+								return_value = 0;
 							}
 						break;
 
@@ -464,14 +526,26 @@ GetGPSMessage(
 								fprintf(stderr, "CFG NMEA received:\n");
 								PrintGPSUBXMessage(recv_message, rx_len);
 								message_delivered = 1;
+								return_value = 0;
 							}
 						break;
+
+						case NAV_PVT:
+							if (recv_message[0] == 0x01 && recv_message[1] == 0x07)
+							{
+								/* PrintGPSUBXMessage(recv_message, rx_len); */
+								/* GPS receive ubx returns class+id+length, we dont want it! */
+								memcpy(msg_out, recv_message+4, rx_len - 4);
+								message_delivered = 1;								
+								return_value = rx_len - 4;
+							}
+						break;						
 					}
 				}
 			}
 		}
 	}
-	return message_delivered;
+	return return_value;
 }
 
 int 
@@ -496,10 +570,56 @@ SetGPSMessage(
 	{
 		if (timeout > 1)
 		{
-			fprintf(stderr, "Message not deivered, trying again\n");
+			fprintf(stderr, "SET Message not deivered, trying again\n");
 		}		
 		switch (t)
 		{
+			case CFG_DISABLE_NMEA:
+				memcpy(buffer, UBX_header, sizeof(UBX_header));
+				tmp = 0x06; /* class */
+				memcpy(buffer+2, &tmp, 1);
+				tmp = 0x00; /* id */
+				memcpy(buffer+3, &tmp, 1);
+				/* HEADER END */
+				/* Length equal to 0 to GET */
+				msg_len = 20;
+				buffer[4] = msg_len&0xFF;
+				buffer[5] = (msg_len>>8)&0xFF;
+				memset(buffer + PAYLOAD_START, 0, msg_len);
+				
+				buffer[PAYLOAD_START] = 0x01; /* port id */
+				buffer[PAYLOAD_START + 1] = 0x00; /* reserved */
+
+				buffer[PAYLOAD_START + 2] = 0x00; /* tx ready 0 */
+				buffer[PAYLOAD_START + 3] = 0x00; /* tx ready 1 */
+				
+				buffer[PAYLOAD_START + 4] = 0xC0; /* mode 0 */
+				buffer[PAYLOAD_START + 5] = 0x08; /* mode 1 */
+				buffer[PAYLOAD_START + 6] = 0x00; /* mode 2 */
+				buffer[PAYLOAD_START + 7] = 0x00; /* mode 3 */
+
+				buffer[PAYLOAD_START + 8] = 0x80; /* baud 0 */
+				buffer[PAYLOAD_START + 9] = 0x25; /* baud 1 */
+				buffer[PAYLOAD_START + 10] = 0x00; /* baud 2 */
+				buffer[PAYLOAD_START + 11] = 0x00; /* baud 3 */
+
+				buffer[PAYLOAD_START + 12] = 0x07; /* in protomask 0 */
+				buffer[PAYLOAD_START + 13] = 0x00; /* in protomask 1 */
+
+				buffer[PAYLOAD_START + 14] = 0x01; /* out protomask 0 */
+				buffer[PAYLOAD_START + 15] = 0x00; /* out protomask 1 */
+
+				/* the nextfollowing 4 bytes are left blank, this is not nec. to put them explicitly */
+
+
+				GPSChecksum(buffer + msg_len + FIRST_CRC,  	/* First CRC character */
+							buffer + msg_len + SECOND_CRC, 	/* Second CRC character */
+							buffer + 2, 					/* buffer without sync word */
+							msg_len + CRC_OVERHEAD);		/* payload length + len (2) + class (1) + id (1) */
+				/* Message is complete now */
+				write(uart_fd, buffer, msg_len + GPS_OVERHEAD);			
+
+				break;
 			case CFG_NAV5:
 				/* HEADER START */
 				memcpy(buffer, UBX_header, sizeof(UBX_header));
@@ -576,10 +696,57 @@ SetGPSMessage(
 						fprintf(stderr, "ACK received:\n");
 						PrintGPSUBXMessage(recv_message, rx_len);
 						message_delivered = 1;
+					}else{
+						fprintf(stderr, "%s\n", "Another type of message received:");
+						PrintGPSUBXMessage(recv_message, rx_len);
 					}
 				}
 			}
 		}
 	}
-	return message_delivered;
+	if (message_delivered == 1)
+		return 0;
+	else
+		return -1;
+}
+
+/* parses a NAV message from UBX protocol */
+/* it goes in a buffer and it fills a structure from DBMAN */
+void 
+ParseUBXPVT(
+	unsigned char * buf, 
+	int len,
+	_gps_data * gps)
+{
+	int32_t 	aux_i4;
+	uint16_t 	aux_u2;
+
+	struct tm tm; 
+
+	gps->time_local = time(NULL);
+
+	memcpy(&aux_u2, buf+4, sizeof(aux_u2));
+	tm.tm_year = aux_u2 - 1900;
+	tm.tm_mon = buf[6] -1;
+	tm.tm_mday = buf[7];
+	tm.tm_hour = buf[8];
+	tm.tm_min = buf[9];
+	tm.tm_sec = buf[10];
+	gps->time_gps = mktime(&tm);
+
+	memcpy(&aux_i4, buf+28, sizeof(aux_i4));
+	gps->lat = (double) aux_i4*1e-7;
+
+	memcpy(&aux_i4, buf+24, sizeof(aux_i4));
+	gps->lng = (double) aux_i4*1e-7;
+
+	memcpy(&aux_i4, buf+60, sizeof(aux_i4));
+	gps->gspeed = (double) aux_i4/1000.0;
+
+	memcpy(&aux_i4, buf+36, sizeof(aux_i4));
+	gps->sea_alt = (double) aux_i4/1000.0;
+
+	memcpy(&aux_i4, buf+32, sizeof(aux_i4));
+	gps->geo_alt = (double) aux_i4/1000.0;
+
 }
