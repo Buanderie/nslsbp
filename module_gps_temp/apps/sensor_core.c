@@ -255,11 +255,11 @@ void
 beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_sensors * amb_sens)
 {
 	#ifndef BEACON_OFF
-	hk_data_t data;
+	HKData data;
 	memcpy(&data.gps, gps_data, sizeof(_gps_data));
 	memcpy(&data.mot, motion_sens, sizeof(_motion_sensors));
 	memcpy(&data.amb, amb_sens, sizeof(_ambient_sensors));
-	BeaconWrite((const void *) &data, sizeof(hk_data_t));
+	BeaconWrite((const void *) &data, sizeof(HKData));
 	#endif 
 }
 
@@ -269,7 +269,7 @@ main (void)
 	struct timeval t1, t2;
 	uint64_t elapsedTime;
 
-	printf("Size of sending struct: %d\n", (int)sizeof(hk_data_t));
+	printf("Size of sending struct: %d\n", (int)sizeof(HKData));
 	printf("Size of gps_data: %d\n", (int) sizeof(_gps_data));
 	printf("Size of motion_data: %d\n", (int) sizeof(_motion_sensors));
 	printf("Size of ambient_data: %d\n", (int) sizeof(_ambient_sensors));
