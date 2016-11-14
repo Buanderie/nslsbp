@@ -6,5 +6,4 @@ set_target_properties(cc_beacon_iface PROPERTIES
 			VERSION 0.1
 			SOVERSION 1) 
 
-
-#target_link_libraries(cc_beacon_iface)
+target_link_libraries(cc_beacon_iface wiringPi)

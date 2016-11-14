@@ -16,12 +16,12 @@
 
 #include <sensors.h>
 
-//#define GPS_OFF
-//#define IMU_OFF
-//#define TEM_OFF
+#define GPS_OFF
+#define IMU_OFF
+#define TEM_OFF
 //#define BEACON_OFF
 
-int 
+int
 init_gps()
 {
 	#ifndef GPS_OFF
@@ -51,19 +51,21 @@ init_gps()
 	#endif
 }
 
-int
+void
 init_beacon()
 {
 	#ifndef BEACON_OFF
 	printf("Beacon connect\n");
-	int beacon_handler = BeaconConnect("localhost", "52001", beacon_sender);
+	if (BeaconConnect() != 0){
+		fprintf (stderr, "Unable to open BEACON.\n" );
+		exit (EXIT_FAILURE);
+	}
 	printf("Beacon connect DONE\n");
-	return beacon_handler;
 	#endif
 }
 
 /* IMU IS NOT THREAD SAFE */
-int
+void
 init_imu()
 {
 	#ifndef IMU_OFF
@@ -249,14 +251,14 @@ temp_read(_ambient_sensors * amb_sens)
 }
 
 void
-beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_sensors * amb_sens, int fd)
+beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_sensors * amb_sens)
 {
 	#ifndef BEACON_OFF
 	hk_data_t data;
 	memcpy(&data.gps, gps_data, sizeof(_gps_data));
 	memcpy(&data.mot, motion_sens, sizeof(_motion_sensors));
 	memcpy(&data.amb, amb_sens, sizeof(_ambient_sensors));
-	BeaconWrite(fd, (const void *) &data, sizeof(hk_data_t));
+	BeaconWrite((const void *) &data, sizeof(hk_data_t));
 	#endif 
 }
 
@@ -273,7 +275,7 @@ main (void)
 	_motion_sensors motion_sens;
 
 	/* initialize sensors, beacons, sockets... */
-	int beacon_fd = init_beacon();
+	init_beacon();
 	int gps_fd = init_gps();
 	/* imu does not return any value, cause of its library implementation */
 	init_imu();
@@ -288,8 +290,8 @@ main (void)
 		gps_read(&gps_data, gps_fd);
 		imu_read(&motion_sens);
 		temp_read(&amb_sens);
-		beacon_write(&gps_data, &motion_sens, &amb_sens, beacon_fd);
-    	sleep(1);
+		beacon_write(&gps_data, &motion_sens, &amb_sens);
+	 	sleep(1);
 		/* the following must be called */
 		/*dbman_save_gps_data(&data);*/
 	}
