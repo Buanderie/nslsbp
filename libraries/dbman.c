@@ -53,32 +53,43 @@ static int mysql_query_no_answer(const char *query)
     return 0;
 }
 
-
 /***********************************************************************************************//**
  * Retrieves GPS and temperature data from the remote MySQL database.
  **************************************************************************************************/
-int dbman_get_gps_data(GPS_data * data)
+int dbman_get_hk_data(HKData * data)
 {
     MYSQL_RES *result;
     MYSQL_ROW row;
 
     if(dbman_connect() == 0) {
-        if(mysql_query(mysql_handle, "SELECT time_local, time_gps, lat, lng, v_kph, sea_alt, geo_alt, course, "
-                                     "temp, cpu_temp, gpu_temp FROM " DB_TABLE_GPS " ORDER BY "
+        if(mysql_query(mysql_handle, "SELECT * FROM " DB_TABLE_HK " ORDER BY "
                                      "`row_id` DESC LIMIT 0,1") == 0) {
             if((result = mysql_store_result(mysql_handle)) != NULL) {
                 while((row = mysql_fetch_row(result)) != NULL) {
-                    strncpy(data->time_local, row[0], 12);
-                    strncpy(data->time_gps,   row[1], 12);
-                    data->lat        = strtod(row[2], NULL);
-                    data->lng        = strtod(row[3], NULL);
-                    data->v_kph      = strtod(row[4], NULL);
-                    data->sea_alt    = strtod(row[5], NULL);
-                    data->geo_alt    = strtod(row[6], NULL);
-                    data->course     = strtod(row[7], NULL);
-                    data->temp       = strtod(row[8], NULL);
-                    data->cpu_temp   = strtod(row[9], NULL);
-                    data->gpu_temp   = strtod(row[10], NULL);
+                    data->gps.time_local    = strtol(row[1],  NULL, 10);
+                    data->gps.time_gps      = strtol(row[2],  NULL, 10);
+                    data->gps.lat           = strtod(row[3],  NULL);
+                    data->gps.lng           = strtod(row[4],  NULL);
+                    data->gps.gspeed        = strtod(row[5],  NULL);
+                    data->gps.sea_alt       = strtod(row[6],  NULL);
+                    data->gps.geo_alt       = strtod(row[7],  NULL);
+                    data->mot.acc_x         = strtod(row[8],  NULL);
+                    data->mot.acc_y         = strtod(row[9],  NULL);
+                    data->mot.acc_z         = strtod(row[10], NULL);
+                    data->mot.gyro_x        = strtod(row[11], NULL);
+                    data->mot.gyro_y        = strtod(row[12], NULL);
+                    data->mot.gyro_z        = strtod(row[13], NULL);
+                    data->mot.mag_x         = strtod(row[14], NULL);
+                    data->mot.mag_y         = strtod(row[15], NULL);
+                    data->mot.mag_z         = strtod(row[16], NULL);
+                    data->amb.cpu_temp      = strtod(row[17], NULL);
+                    data->amb.gpu_temp      = strtod(row[18], NULL);
+                    data->amb.in_temp       = strtod(row[19], NULL);
+                    data->amb.in_pressure   = strtod(row[20], NULL);
+                    data->amb.in_calc_alt   = strtod(row[21], NULL);
+                    data->amb.out_temp      = strtod(row[22], NULL);
+                    data->amb.out_pressure  = strtod(row[23], NULL);
+                    data->amb.out_calc_alt  = strtod(row[24], NULL);
                 }
                 mysql_free_result(result);
                 dbman_disconnect();
@@ -95,41 +106,28 @@ int dbman_get_gps_data(GPS_data * data)
         return -1;
     }
 }
+
 /***********************************************************************************************//**
  * Inserts GPS and temperature data into the remote MySQL database.
  **************************************************************************************************/
-int dbman_save_gps_data(GPS_data * data)
+int dbman_save_hk_data(HKData * data)
 {
-    char query[500];
+    char query[1000];
     int retval = 0;
 
-    sprintf(query, "INSERT INTO " DB_TABLE_GPS " (`time_local`, `time_gps`, `lat`, `lng`, `v_kph`,"
-                   " `sea_alt`, `geo_alt`, `course`, `temp`, `cpu_temp`, `gpu_temp`) VALUES "
-                   "('%s', '%s', %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf)",
-                   data->time_local, data->time_gps, data->lat, data->lng, data->v_kph,
-                   data->sea_alt, data->geo_alt, data->course, data->temp, data->cpu_temp,
-                   data->gpu_temp);
+    sprintf(query, "INSERT INTO " DB_TABLE_HK " (`time_local`, `time_gps`, `lat`, `lng`, `gspeed`, "
+        "`sea_alt`, `geo_alt`, `acc_x`, `acc_y`, `acc_z`, `gyro_x`, `gyro_y`, `gyro_z`, `mag_x`, "
+        "`mag_y`, `mag_z`, `cpu_temp`, `gpu_temp`, `in_temp`, `in_pressure`, `in_calc_alt`, "
+        "`out_temp`, `out_pressure`, `out_calc_alt`) VALUES "
+        "(%u, %u, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, "
+        "%f, %f, %f, %f, %f)",
+        data->gps.time_local, data->gps.time_gps, data->gps.lat, data->gps.lng, data->gps.gspeed,
+        data->gps.sea_alt, data->gps.geo_alt, data->mot.acc_x, data->mot.acc_y, data->mot.acc_z,
+        data->mot.gyro_x, data->mot.gyro_y, data->mot.gyro_z, data->mot.mag_x, data->mot.mag_y,
+        data->mot.mag_z, data->amb.cpu_temp, data->amb.gpu_temp, data->amb.in_temp,
+        data->amb.in_pressure, data->amb.in_calc_alt, data->amb.out_temp, data->amb.out_pressure,
+        data->amb.out_calc_alt);
 
-    if(dbman_connect() == 0) {
-        retval = mysql_query_no_answer(query);
-        dbman_disconnect();
-        return retval;
-    } else {
-        return -1;
-    }
-}
-
-
-/***********************************************************************************************//**
- * Inserts debug messages into the remote MySQL database.
- **************************************************************************************************/
-int dbman_save_dbg_data(time_t time_local, time_t time_sbc, const char * message)
-{
-    char query[500];
-    int retval = 0;
-
-    sprintf(query, "INSERT INTO " DB_TABLE_DBG " (`time_local`, `time_sbc`, `message`) "
-                   "VALUES (%ld, %ld, '%s')", time_local, time_sbc, message);
     if(dbman_connect() == 0) {
         retval = mysql_query_no_answer(query);
         dbman_disconnect();
@@ -154,7 +152,7 @@ int dbman_get_last_position(double *lat, double *lon, double *alt)
     *alt = 0.0;
 
     if(dbman_connect() == 0) {
-        if(mysql_query(mysql_handle, "SELECT lat, lng, sea_alt FROM " DB_TABLE_GPS
+        if(mysql_query(mysql_handle, "SELECT lat, lng, sea_alt FROM " DB_TABLE_HK
                                      " ORDER BY `row_id` DESC LIMIT 0,1") == 0) {
             if((result = mysql_store_result(mysql_handle)) != NULL) {
                 while((row = mysql_fetch_row(result)) != NULL) {

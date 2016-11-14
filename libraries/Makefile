@@ -1,28 +1,18 @@
-BEACON = cc_beacon_iface_wrapper
 DBMAN  = dbman
 
-INSTALL_DIR  = /usr/lib/bsx/
-LD_CONF_FILE = barbie_space_explorer.conf
+INSTALL_DIR  = /usr/lib/nslsbp/
+LD_CONF_FILE = nslsbp.conf
 
-BEACON_SO := $(addprefix lib,$(addsuffix .so,$(BEACON)))
 DBMAN_SO  := $(addprefix lib,$(addsuffix .so,$(DBMAN)))
 
 CFLAGS  = -Wall -g -fpic
 LDFLAGS = -shared
 
-BEACON_LDFLAGS = -lcc_beacon_iface -L../module_beacon/cc1101_handler/lib
-BEACON_CFLAGS  = -I../module_beacon/cc1101_handler/include #-DCC_BEACON_IFACE_WRAPPER_DEBUG
-
-DBMAN_CFLAGS   = -I/usr/local/mysql/include
-DBMAN_LDFLAGS  = -L/usr/local/mysql/lib -lmysqlclient -lpthread
+DBMAN_CFLAGS   = -I../module_gps_temp/include
+DBMAN_LDFLAGS  = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread
 
 
-
-all: beacon dbman
-
-beacon: cc_beacon_iface_wrapper.c
-	@echo -n -e '---------: BUILDING $< -> $(BEACON_SO) : '
-	@gcc $(CFLAGS) $(BEACON_CFLAGS) $< $(LDFLAGS) -o $(BEACON_SO) $(BEACON_LDFLAGS) && echo 'done.'
+all: dbman
 
 dbman: dbman.c
 	@echo -n -e '---------: BUILDING $< -> $(DBMAN_SO) : '
@@ -30,8 +20,6 @@ dbman: dbman.c
 
 install:
 	@mkdir -p $(INSTALL_DIR)
-	@echo '---------: INSTALLING $(BEACON_SO)'
-	@cp $(BEACON_SO) $(INSTALL_DIR) -u
 	@echo '---------: INSTALLING $(DBMAN_SO)'
 	@cp $(DBMAN_SO) $(INSTALL_DIR) -u
 	@touch /etc/ld.so.conf.d/$(LD_CONF_FILE)
@@ -44,10 +32,9 @@ $(OBJDIR):
 
 
 clean:
-	@echo -n '---------: REMOVING binaries... ' && rm xlauncher -f && echo 'done.'
 	@echo -n '---------: REMOVING objects... ' && rm $(OBJDIR) -r -f && echo 'done.'
 	@echo -n '---------: REMOVING libraries... ' && \
-	rm $(BEACON_SO) $(DBMAN_SO) -f && echo 'done.'
+	rm $(DBMAN_SO) -f && echo 'done.'
 	@echo -n '---------: UNINSTALLING libraries (1)... ' && \
 	sudo rm $(INSTALL_DIR) -r -f && echo 'done.'
 	@echo -n '---------: UNINSTALLING libraries (2)... ' && \

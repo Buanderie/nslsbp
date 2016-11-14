@@ -11,6 +11,10 @@
  *              subject to different copyright conditions.
  **************************************************************************************************/
 
+/* No Makefile provided. Compile with:
+    gcc -o dbman_test dbman_test.c -ldbman -L. -I../module_gps_temp/include
+ */
+
 /*** INCLUDE SECTION ******************************************************************************/
 #include <stdio.h>
 #include <time.h>
@@ -24,30 +28,38 @@
 int main(int argc, char **argv)
 {
     double a, b, c;
-    GPS_data gd;
+    HKData d;
 
-    sprintf(gd.time_local, "-1", time(NULL));
-    sprintf(gd.time_gps,   "-1", time(NULL) + 1);
-    gd.lat = 41.3947688;
-    gd.lng = 2.0787279;
-    gd.v_kph = 0.0;
-    gd.sea_alt = 100.0;
-    gd.geo_alt = 111.1;
-    gd.course = 22.2;
-    gd.temp = 25.5;
-    gd.cpu_temp = 47.7;
-    gd.gpu_temp = 48.8;
+    /* Inserted values: */
+    d.gps.time_local    = time(NULL);
+    d.gps.time_gps      = time(NULL) + 1;
+    d.gps.lat           = 1.f;
+    d.gps.lng           = 2.f;
+    d.gps.gspeed        = 3.f;
+    d.gps.sea_alt       = 4.f;
+    d.gps.geo_alt       = 5.f;
+    d.mot.acc_x         = 6.f;
+    d.mot.acc_y         = 7.f;
+    d.mot.acc_z         = 8.f;
+    d.mot.gyro_x        = 9.f;
+    d.mot.gyro_y        = 10.f;
+    d.mot.gyro_z        = 11.f;
+    d.mot.mag_x         = 12.f;
+    d.mot.mag_y         = 13.f;
+    d.mot.mag_z         = 14.f;
+    d.amb.cpu_temp      = 15.f;
+    d.amb.gpu_temp      = 16.f;
+    d.amb.in_temp       = 17.f;
+    d.amb.in_pressure   = 18.f;
+    d.amb.in_calc_alt   = 19.f;
+    d.amb.out_temp      = 20.f;
+    d.amb.out_pressure  = 21.f;
+    d.amb.out_calc_alt  = 22.f;
 
-    if(dbman_save_gps_data(&gd) == 0) {
-        printf("GPS data saved successfully\n");
+    if(dbman_save_hk_data(&d) == 0) {
+        printf("Housekeeping data saved successfully\n");
     } else {
         printf("Error saving GPS data\n");
-    }
-
-    if(dbman_save_dbg_data(time(NULL), time(NULL)+10, "This is a debug message") == 0) {
-        printf("Debug data saved successfully\n");
-    } else {
-        printf("Error saving debug data\n");
     }
 
     if(dbman_get_last_position(&a, &b, &c) == 0) {
@@ -56,17 +68,61 @@ int main(int argc, char **argv)
         printf("Error fetching data\n");
     }
 
-    memset(&gd, 0, sizeof(gd));
-    if(dbman_get_gps_data(&gd) == 0) {
-        printf("GPS data fetched:\n gd.time_local = %s,\n gd.time_gps = %s,\n gd.lat = %lf,\n "
-                "gd.lng = %lf,\n gd.v_kph = %lf,\n gd.sea_alt = %lf,\n gd.geo_alt = %lf,\n "
-                "gd.course = %lf,\n gd.temp = %lf,\n gd.cpu_temp = %lf,\n gd.gpu_temp = %lf\n",
-                gd.time_local, gd.time_gps, gd.lat, gd.lng, gd.v_kph, gd.sea_alt, gd.geo_alt,
-                gd.course, gd.temp, gd.cpu_temp, gd.gpu_temp);
+    memset(&d, 0, sizeof(d));
+    if(dbman_get_hk_data(&d) == 0) {
+        printf("GPS data fetched:\n"
+                "  d.gps.time_local    = %u\n"
+                "  d.gps.time_gps      = %u\n"
+                "  d.gps.lat           = %.4f\n"
+                "  d.gps.lng           = %.4f\n"
+                "  d.gps.gspeed        = %.4f\n"
+                "  d.gps.sea_alt       = %.4f\n"
+                "  d.gps.geo_alt       = %.4f\n"
+                "  d.mot.acc_x         = %.4f\n"
+                "  d.mot.acc_y         = %.4f\n"
+                "  d.mot.acc_z         = %.4f\n"
+                "  d.mot.gyro_x        = %.4f\n"
+                "  d.mot.gyro_y        = %.4f\n"
+                "  d.mot.gyro_z        = %.4f\n"
+                "  d.mot.mag_x         = %.4f\n"
+                "  d.mot.mag_y         = %.4f\n"
+                "  d.mot.mag_z         = %.4f\n"
+                "  d.amb.cpu_temp      = %.4f\n"
+                "  d.amb.gpu_temp      = %.4f\n"
+                "  d.amb.in_temp       = %.4f\n"
+                "  d.amb.in_pressure   = %.4f\n"
+                "  d.amb.in_calc_alt   = %.4f\n"
+                "  d.amb.out_temp      = %.4f\n"
+                "  d.amb.out_pressure  = %.4f\n"
+                "  d.amb.out_calc_alt  = %.4f\n",
+                d.gps.time_local,
+                d.gps.time_gps,
+                d.gps.lat,
+                d.gps.lng,
+                d.gps.gspeed,
+                d.gps.sea_alt,
+                d.gps.geo_alt,
+                d.mot.acc_x,
+                d.mot.acc_y,
+                d.mot.acc_z,
+                d.mot.gyro_x,
+                d.mot.gyro_y,
+                d.mot.gyro_z,
+                d.mot.mag_x,
+                d.mot.mag_y,
+                d.mot.mag_z,
+                d.amb.cpu_temp,
+                d.amb.gpu_temp,
+                d.amb.in_temp,
+                d.amb.in_pressure,
+                d.amb.in_calc_alt,
+                d.amb.out_temp,
+                d.amb.out_pressure,
+                d.amb.out_calc_alt);
     } else {
         printf("Error fetching data\n");
     }
 
-    printf("GPS and Temperature data is %ld Bytes\n", sizeof(gd));
+    printf("The houskeeping data is stored in %ld Bytes\n", sizeof(d));
     return 0;
 }
