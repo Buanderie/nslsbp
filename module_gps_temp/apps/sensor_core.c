@@ -4,6 +4,7 @@
 #include <termios.h>		//Used for UART
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h> 
 
 #include <gps.h>
 #include <mpu-9150.h>
@@ -265,6 +266,9 @@ beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_senso
 int
 main (void)
 {
+	struct timeval t1, t2;
+	uint64_t elapsedTime;
+
 	printf("Size of sending struct: %d\n", (int)sizeof(hk_data_t));
 	printf("Size of gps_data: %d\n", (int) sizeof(_gps_data));
 	printf("Size of motion_data: %d\n", (int) sizeof(_motion_sensors));
@@ -287,11 +291,18 @@ main (void)
 
 	while(1)
 	{
+		gettimeofday(&t1, NULL);
+
 		gps_read(&gps_data, gps_fd);
 		imu_read(&motion_sens);
 		temp_read(&amb_sens);
 		beacon_write(&gps_data, &motion_sens, &amb_sens);
-	 	sleep(1);
+
+		gettimeofday(&t2, NULL);
+
+		elapsedTime = t2.tv_usec - t1.tv_usec;
+		/* sleep (1 000 000 useconds - time_elapsed) in doing beacon write, etc */
+	 	usleep(1 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
 		/*dbman_save_gps_data(&data);*/
 	}
