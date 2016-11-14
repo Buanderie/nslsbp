@@ -121,16 +121,19 @@ int main(int argc, char ** argv)
                 /* Formula: θ = atan2( sin Δλ ⋅ cos φ2 , cos φ1 ⋅ sin φ2 − sin φ1 ⋅ cos φ2 ⋅ cos Δλ )
                  *  where   φ1,λ1 is the start point, φ2,λ2 the end point (Δλ is the difference in longitude)
                  */
-                y = sin(delta_lng) * cos(gd.lng);
-                x = (cos(gs_lat) * sin(gd.lat)) - (sin(gs_lat) * cos(gd.lat) * cos(delta_lng));
-                az = RAD2DEG(atan2(y, x));
-                az = fmod((az + 360.0), 360.0);
+                if(mode == MODE_AUTO) {
+                    y = sin(delta_lng) * cos(gd.lng);
+                    x = (cos(gs_lat) * sin(gd.lat)) - (sin(gs_lat) * cos(gd.lat) * cos(delta_lng));
+                    az = RAD2DEG(atan2(y, x));
+                    az = fmod((az + 360.0), 360.0);
 
-                el = RAD2DEG(atan((delta_alt) / dist));
-                printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
+                    el = RAD2DEG(atan((delta_alt) / dist));
+                    printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
+                }
                 if(mode == MODE_AUTO) {
                     rotors_set_az_el(fd, az, el);
                 }
+
             }
         } else {
             printfe("Error retrieving beacon data\n");
