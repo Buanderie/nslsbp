@@ -8,6 +8,7 @@
 #include <gps.h>
 #include <mpu-9150.h>
 #include <bmp180.h>
+#include <mcp9808.h>
 
 #include "../../libraries/dbman.h"
 
@@ -46,8 +47,8 @@ init_gps()
 		printf("Error\n");
 		exit(-1);
 	}
-	#endif
 	return uart_fd;
+	#endif
 }
 
 int
@@ -96,7 +97,7 @@ init_imu()
 	#endif	
 }
 
-void *
+void
 init_temp_sensor()
 {
 	#ifndef TEM_OFF
@@ -106,14 +107,20 @@ init_temp_sensor()
 	/* I2C Temp/Baro sensor INIT */
 	void *bmp = bmp180_init(address, i2c_device);
 	if (bmp == NULL){
-		fprintf(stderr, "Initialization error on temperature sensor\n");
+		fprintf(stderr, "Initialization error on temperature sensor 1\n");
 		exit ( EXIT_FAILURE );
 	}
-	bmp180_eprom_t eprom;
-	bmp180_dump_eprom(bmp, &eprom);
 	bmp180_set_oss(bmp, 1);
+	bmp180_close(bmp);
+
+	address = 0x25;
+	void *mcp = mcp9808_init(address, i2c_device);
+	if (mcp == NULL){
+		fprintf(stderr, "Initialization error on temperature sensor 2\n");
+		exit ( EXIT_FAILURE );
+	}
+	mcp9808_close(mcp);
 	printf("Temperature connect DONE\n");
-	return bmp;
 	#endif
 }
 
@@ -179,12 +186,38 @@ imu_read(_motion_sensors * motion_sens)
 }
 
 void
-temp_read(_ambient_sensors * amb_sens, void * bmp)
+temp_read(_ambient_sensors * amb_sens)
 {
 	#ifndef TEM_OFF
+
+  	char i2c_device[] = "/dev/i2c-1";
+  	int address = 0x77;
+	/* I2C Temp/Baro sensor INIT */
+	void *bmp = bmp180_init(address, i2c_device);
+	if (bmp == NULL){
+		fprintf(stderr, "Initialization error on temperature sensor 1\n");
+		exit ( EXIT_FAILURE );
+	}
+
+	address = 0x25;
+	void *mcp = mcp9808_init(address, i2c_device);
+	if (mcp == NULL){
+		fprintf(stderr, "Initialization error on temperature sensor 2\n");
+		exit ( EXIT_FAILURE );
+	}
+	bmp180_set_oss(bmp, 1);
+
 	amb_sens->in_temp = bmp180_temperature(bmp);
 	amb_sens->in_pressure = (double) (bmp180_pressure(bmp)/100.0);
 	amb_sens->in_calc_alt = bmp180_altitude(bmp);
+
+	bmp180_close(bmp);
+
+	amb_sens->out_temp = mcp9808_temperature(mcp);
+	amb_sens->out_pressure = amb_sens->in_pressure;
+	amb_sens->out_calc_alt = amb_sens->in_calc_alt;
+	
+	mcp9808_close(mcp);
 
     int t_aux = 0;
     FILE * cpufile;
@@ -209,7 +242,7 @@ temp_read(_ambient_sensors * amb_sens, void * bmp)
         fclose(gpufile);
     }
 
-	printf("\tIn Temp: %f Press: %f, Alt: %f\n", amb_sens->in_temp, amb_sens->in_pressure, amb_sens->in_calc_alt);	
+	printf("\tIn Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens->in_temp, amb_sens->in_pressure, amb_sens->in_calc_alt, amb_sens->out_temp);	
 	printf("\tIn Temp CPU: %f Temp GPU %f\n", amb_sens->cpu_temp, amb_sens->gpu_temp);
 
 	#endif
@@ -244,8 +277,8 @@ main (void)
 	int gps_fd = init_gps();
 	/* imu does not return any value, cause of its library implementation */
 	init_imu();
-	/* temp sensor is returning a *bmp object */
-	void * bmp = init_temp_sensor();
+	/* temp sensor does not return any value, cause of its library implementation */
+	init_temp_sensor();
 	/* END OF INITS */
 	/* hold 1 second before start streaming data */
 	sleep(1);
@@ -254,7 +287,7 @@ main (void)
 	{
 		gps_read(&gps_data, gps_fd);
 		imu_read(&motion_sens);
-		temp_read(&amb_sens, bmp);
+		temp_read(&amb_sens);
 		beacon_write(&gps_data, &motion_sens, &amb_sens, beacon_fd);
     	sleep(1);
 		/* the following must be called */

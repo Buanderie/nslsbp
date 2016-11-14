@@ -6,6 +6,9 @@
  *  
  */
  
+#ifndef BMP180_H_
+#define BMP180_H_
+
 /*
  * pressure oversampling modes
  */
@@ -44,3 +47,4 @@ float bmp180_altitude(void *_bmp);
 
 void bmp180_dump_eprom(void *_bmp, bmp180_eprom_t *eprom);
 
+#endif
