@@ -299,8 +299,8 @@ main (void)
 		beacon_write(&gps_data, &motion_sens, &amb_sens);
 
 		gettimeofday(&t2, NULL);
-
-		elapsedTime = t2.tv_usec - t1.tv_usec;
+		
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
 		/* sleep (1 000 000 useconds - time_elapsed) in doing beacon write, etc */
 	 	usleep(1 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
