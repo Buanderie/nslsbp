@@ -171,7 +171,7 @@ int setup()
                      *     2: APPEND_STATUS -- 0 = do not append 2 status bytes to payload.
                      *  1..0: ADR_CHK -------- 00 = no address check.
                      */
-        0x08, (0x04 | (int)global_fec_dis),
+        0x08, (0x44 | (int)global_fec_dis),
                     /* PKTCTRL0 Packet automation control. (0x44 = b0100 010X) --------------------- !!!
                      *     7: (Not used.)
                      *     6: WHITE_DATA ----- 1 = on.
@@ -269,7 +269,7 @@ int setup()
         str1[3] == syncword1    &&
         str1[4] == syncword0    &&
         str1[5] == datarate     &&
-        str1[6] == (0x04 | (int)global_fec_dis) &&
+        str1[6] == (0x44 | (int)global_fec_dis) &&
         str1[7] == (0x32 | ((!global_fec_dis) << 7)))
     {
         printfd("Register Setup: FREQ: %.2x %.2x %.2x SYNC: %.2x %.2x DRATE: %.2x\n",
