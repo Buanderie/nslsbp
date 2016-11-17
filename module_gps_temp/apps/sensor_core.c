@@ -136,7 +136,8 @@ gps_read(_gps_data * gps_data, int uart_fd)
 	memset(gps_data, 0, sizeof(_gps_data));
 	if (rx_len = GetGPSMessage(uart_fd, NAV_PVT, recv_message), rx_len > 0 ){
 		ParseUBXPVT(recv_message, rx_len, gps_data);
-		printf("Lat: %f, Long: %f, GSpeed: %f\n", gps_data->lat, gps_data->lng, gps_data->gspeed);
+		printf("Times: Local->%d GPS->%d\n", gps_data->time_local, gps_data->time_gps);
+		printf("Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data->lat, gps_data->lng, gps_data->gspeed, gps_data->sea_alt, gps_data->geo_alt);
 	}
 	#endif
 }
