@@ -367,7 +367,9 @@ GetGPSMessage(
 	int recv_timeout = 0;
 	int return_value = -1;
 	int message_delivered = 0;
-	
+	struct timeval t1, t2;
+	uint64_t elapsedTime;
+
 	clean_read_buffer(uart_fd);
 	while(!message_delivered && (++timeout < limit))
 	{
@@ -482,7 +484,12 @@ GetGPSMessage(
 			break;
 		}
 		recv_timeout = 0;
-		while( (rx_len = read_with_timeout(uart_fd, buffer, 1, init_timeout), rx_len > 0 ) && message_delivered == 0 && (++recv_timeout < recv_limit) )
+		gettimeofday(&t1, NULL);
+		rx_len = read_with_timeout(uart_fd, buffer, 1, init_timeout);
+		gettimeofday(&t2, NULL);
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
+		printf("Elapsed time waiting for response RX: %f ms\n", elapsedTime/1000.0);
+		while( rx_len > 0 && message_delivered == 0 && (++recv_timeout < recv_limit) )
 		{
 			if (buffer[0] == (unsigned char) UBX_ID)
 			{
@@ -543,6 +550,8 @@ GetGPSMessage(
 					}
 				}
 			}
+			if (message_delivered == 0)
+				rx_len = read_with_timeout(uart_fd, buffer, 1, init_timeout);
 		}
 	}
 	return return_value;
