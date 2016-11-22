@@ -3,7 +3,7 @@ OBJDIR := obj
 OBJSXL := $(addprefix $(OBJDIR)/,xlauncher.o)
 OBJSGS := $(addprefix $(OBJDIR)/,ground_station.o)
 
-INCLUDES  = -I./libraries
+INCLUDES  = -I./libraries -I./module_gps_temp/include
 LIBRARIES = -L./libraries
 
 CFLAGS  = -Wall -DXLAUNCHER_DEBUG -DGROUND_STATION_DEBUG -DFAKE_BEACON_MSG $(INCLUDES)

@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
     time_t last_update_gps = -2;
     time_t last_update_sbc = -2;
     time_t time_local;
-    GPS_data gd;
+    HKData hk;
     double delta_lat, delta_lng, delta_alt, dist;
     double aux, arc, x, y;
 
@@ -79,26 +79,26 @@ int main(int argc, char ** argv)
     printfd("Ground Station location (lat, lon, alt): %.6lf, %.6lf, %.1lf\n", gs_lat, gs_lng, gs_alt);
 
     /* Set initial conditions: */
-    dbman_get_gps_data(&gd);
-    last_update_gps = strtol(gd.time_gps, NULL, 10);
-    last_update_sbc = strtol(gd.time_local, NULL, 10);
+    dbman_get_hk_data(&hk);
+    last_update_gps = hk.gps.time_gps;
+    last_update_sbc = hk.gps.time_local;
 
     /* Start control loop: */
     while(!gs_exit) {
-        if(dbman_get_gps_data(&gd) == 0) {
-            if( (last_update_gps < strtol(gd.time_gps, NULL, 10)) ||
-                (last_update_sbc < strtol(gd.time_local, NULL, 10))) {
+        if(dbman_get_hk_data(&hk) == 0) {
+            if( (last_update_gps < hk.gps.time_gps) ||
+                (last_update_sbc < hk.gps.time_local)) {
                 /* A new value arrived: */
-                last_update_gps = strtol(gd.time_gps, NULL, 10);
-                last_update_sbc = strtol(gd.time_local, NULL, 10);
+                last_update_gps = hk.gps.time_gps;
+                last_update_sbc = hk.gps.time_local;
                 printfdg("[GPS data        ] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
-                    gd.lat, gd.lng, gd.sea_alt, gd.geo_alt);
-                printfdg("[GPS data        ] time(SBC) = %s, time(GPS) = %s, vel = %.2lf, course = %.2lf\n",
-                    gd.time_local, gd.time_gps, gd.v_kph, gd.course);
-                if(gd.gpu_temp >= 60.0 || gd.cpu_temp >= 60.0) {
-                    printfe("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", gd.temp, gd.cpu_temp, gd.gpu_temp);
+                    hk.gps.lat, hk.gps.lng, hk.gps.sea_alt, hk.gps.geo_alt);
+                printfdg("[GPS data        ] time(SBC) = %u, time(GPS) = %u, vel = %.2lf\n",
+                    hk.gps.time_local, hk.gps.time_gps, hk.gps.gspeed);
+                if(hk.amb.gpu_temp >= 60.0 || hk.amb.cpu_temp >= 60.0) {
+                    printfe("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.amb.in_temp, hk.amb.cpu_temp, hk.amb.gpu_temp);
                 } else {
-                    printfdg("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", gd.temp, gd.cpu_temp, gd.gpu_temp);
+                    printfdg("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.amb.in_temp, hk.amb.cpu_temp, hk.amb.gpu_temp);
                 }
 
 
@@ -106,13 +106,13 @@ int main(int argc, char ** argv)
                  * distances. Implementation is extracted from the following resource:
                  * ** http://www.movable-type.co.uk/scripts/latlong.html
                  */
-                gd.lat = DEG2RAD(gd.lat);
-                gd.lng = DEG2RAD(gd.lng);
-                delta_lat = gd.lat - gs_lat;
-                delta_lng = gd.lng - gs_lng;
-                delta_alt = gd.sea_alt - gs_alt;
+                hk.gps.lat = DEG2RAD(hk.gps.lat);
+                hk.gps.lng = DEG2RAD(hk.gps.lng);
+                delta_lat = hk.gps.lat - gs_lat;
+                delta_lng = hk.gps.lng - gs_lng;
+                delta_alt = hk.gps.sea_alt - gs_alt;
                 aux = sin(delta_lat / 2.0) * sin(delta_lat / 2.0) +
-                      cos(gs_lat) * cos(gd.lat) *
+                      cos(gs_lat) * cos(hk.gps.lat) *
                       sin(delta_lng / 2.0) * sin(delta_lng / 2.0);
 
                 arc = 2.0 * atan2(sqrt(aux), sqrt(1 - aux));    /* Great-circle distance in Radians.    */
@@ -122,8 +122,8 @@ int main(int argc, char ** argv)
                  *  where   φ1,λ1 is the start point, φ2,λ2 the end point (Δλ is the difference in longitude)
                  */
                 if(mode == MODE_AUTO) {
-                    y = sin(delta_lng) * cos(gd.lng);
-                    x = (cos(gs_lat) * sin(gd.lat)) - (sin(gs_lat) * cos(gd.lat) * cos(delta_lng));
+                    y = sin(delta_lng) * cos(hk.gps.lng);
+                    x = (cos(gs_lat) * sin(hk.gps.lat)) - (sin(gs_lat) * cos(hk.gps.lat) * cos(delta_lng));
                     az = RAD2DEG(atan2(y, x));
                     az = fmod((az + 360.0), 360.0);
 
@@ -136,7 +136,7 @@ int main(int argc, char ** argv)
 
             }
         } else {
-            printfe("Error retrieving beacon data\n");
+            //printfe("Error retrieving beacon data\n");
         }
         if(mode == MODE_MANUAL) {
             if(req_go_home) {
@@ -353,6 +353,8 @@ void rotors_home(int fd)
                 buf[len - 1] = '\0';
                 if(strcmp("DONE", buf) != 0) {
                     printfe("[Rotors home] Error sending command -> Autohome does not work\n");
+                }else{
+                    printfo("[Rotors home] Rotors correctly set to home\n");
                 }
             }else{
                 printfe("[Rotors home] Error reading from UART -> Autohome timedout\n");
@@ -383,36 +385,40 @@ const char * curr_time_format(void)
     return retval;
 }
 
+static int input_timeout(int fd, long long microsec)
+{
+    fd_set set;
+    struct timeval timeout;
+    /* Initialize the file descriptor set. */
+    FD_ZERO (&set);
+    FD_SET (fd, &set);
+
+    /* Initialize the timeout data structure. */
+    timeout.tv_sec = 0;
+    timeout.tv_usec = microsec;
+
+    /* select returns 0 if timeout, 1 if input available, -1 if error. */
+    return (select (FD_SETSIZE, &set, NULL, NULL, &timeout));   
+}
+
 /***********************************************************************************************//**
  * Performs a read with timeouts.
  **************************************************************************************************/
-int uart_read(int fd, unsigned char *buffer, int * size, int timeout)
+int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
 {
     int r_op, sel_op;
-    fd_set uart_fd;
-    struct timeval max_time;    /* 1-byte timeout represented as a timeval struct. */
-    struct timeval end;         /* Time at which the final timeout will occur. */
-    int diff_time;              /* Time difference between select and read (without timeout), in microseconds. */
+    struct timeval end;    /* 1-byte timeout represented as a timeval struct. */
+    struct timeval start;         /* Time at which the final timeout will occur. */
+    long long diff_time;        /* Time difference between select and read (without timeout), in microseconds. */
+    long long wait_microsec;
     int buf_size = *size;
     int accumulated_size = 0;
-
     if(timeout > 0)
-    {
-        // Timed read:
-        // -- Prepare counters
-        gettimeofday(&end, NULL);
-        end.tv_sec = (timeout / 1000000);
-        end.tv_usec = (timeout % 1000000);
-
-        max_time.tv_sec = (timeout / 1000000);
-        max_time.tv_usec = (timeout % 1000000);
-
+    {    
         do{
-            // Prpare select structures
-            FD_ZERO(&uart_fd);
-            FD_SET(fd, &uart_fd);
-
-            sel_op = select(FD_SETSIZE, &uart_fd, NULL, NULL, &max_time);
+            gettimeofday(&start, NULL);
+            wait_microsec = timeout;
+            sel_op = input_timeout(fd, wait_microsec);
             if(sel_op == 0)
             {
                 // Timeout
@@ -432,14 +438,10 @@ int uart_read(int fd, unsigned char *buffer, int * size, int timeout)
             }
 
             // Get the current time and calculate the difference in order to reduce the timeout:
-            gettimeofday(&max_time, NULL);
-            diff_time = ((end.tv_sec * 1000000) + end.tv_usec) - ((max_time.tv_sec * 1000000) + max_time.tv_usec);
-
-            // Calculate/set the new timeout:
-            max_time.tv_sec  = diff_time / 1000000;
-            max_time.tv_usec = diff_time % 1000000;
-
-        }while( (buffer[accumulated_size - 1] != '\n') && ((accumulated_size - 1) < buf_size) );
+            gettimeofday(&end, NULL);
+            diff_time = ((end.tv_sec * 1000000) + end.tv_usec) - ((start.tv_sec * 1000000) + start.tv_usec);
+            timeout -= diff_time;
+        }while( (buffer[accumulated_size - 1] != '\n') && ((accumulated_size - 1) < buf_size) && timeout > 0);
         *size = accumulated_size;
     }
     return 0;
@@ -472,7 +474,7 @@ int open_rotor_interface(const char * tty_path)
     // Enable data to be processed as raw input
     options.c_lflag &= ~(ICANON | ECHO | ISIG);
 
-    options.c_cc[VMIN]  =  1;           // 1 bytes to read
+    options.c_cc[VMIN]  =  0;           // 1 bytes to read
     options.c_cc[VTIME]  =  0;         // 10 * 0.1 seconds read timeout
 
     // Set the new attributes
