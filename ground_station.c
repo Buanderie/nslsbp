@@ -250,9 +250,15 @@ void * rotor_control(void * arg)
                     }
                     break;
                 case KEY_MENU_QUERY:
-                    printfd("Set   azimuth = %.2lf º;  elevation = %.2lf º\n", az, el);
-                    rotors_get_az_el(fd, &real_az, &real_el);
-                    printfd("Real  azimuth = %.2lf º;  elevation = %.2lf º\n", real_az, real_el);
+                    if (req_go_home == false){
+                        printfd("Set   azimuth = %.2lf º;  elevation = %.2lf º\n", az, el);
+                        real_az = 0.0;
+                        real_el = 0.0;
+                        rotors_get_az_el(fd, &real_az, &real_el);
+                        printfd("Read  azimuth = %.2lf º;  elevation = %.2lf º\n", real_az, real_el);
+                    }else{
+                        printfe("Rotors cannot be queried while autohome\n");
+                    }
                     break;
                 case KEY_MENU_HELP:
                 case KEY_MENU_HELPC:
@@ -418,6 +424,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
         do{
             gettimeofday(&start, NULL);
             wait_microsec = timeout;
+            printfe("Timeout to run: %lld\n", wait_microsec);
             sel_op = input_timeout(fd, wait_microsec);
             if(sel_op == 0)
             {
