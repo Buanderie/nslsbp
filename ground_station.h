@@ -120,6 +120,7 @@ void * rotor_control(void * arg);
 
 void init_rotor_control (int fd);
 int open_rotor_interface(const char * tty_path);
+int uart_write(int fd, void *buffer, int size);
 int uart_read(int fd, unsigned char *buffer, int * buf_size, long long timeout);
 
 void tty_raw(void);

@@ -299,7 +299,7 @@ void rotors_get_az_el(int fd, double * v_az, double * v_el)
     /* length of the floats + the type of command */
     buf[0] = (char) 'G';
     buf[1] = (char) '\n';
-    write(fd, buf, 2);
+    uart_write(fd, buf, 2);
     /* Recv the yack/nack */
     if (uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000) == 0){
         buf[len - 1] = '\0';
@@ -326,7 +326,7 @@ void rotors_set_az_el(int fd, double v_az, double v_el)
         printfd("Setting azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
         /* length of the floats + the type of command */
         buf[0] = (char) 'S';
-        write(fd, buf, len + 1);
+        uart_write(fd, buf, len + 1);
         /* Recv the yack/nack */
         if (uart_read(fd, (unsigned char *) buf, &len, 1000 * 1000) == 0){
             buf[len - 1] = '\0';
@@ -349,7 +349,7 @@ void rotors_home(int fd)
     int len = 5;
     buf[0] = 'A';
     printfd("Setting rotors home...\n");
-    write(fd, buf, 2);
+    uart_write(fd, buf, 2);
     /* Recv the yack/nack */
     /* up to 2 minutes of timeout */
     if((uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000)) == 0) {
@@ -407,6 +407,35 @@ static int input_timeout(int fd, long long microsec)
     return (select (FD_SETSIZE, &set, NULL, NULL, &timeout));   
 }
 
+
+/***********************************************************************************************//**
+ * Performs a write to uart interface after flushing the uart buffer
+ **************************************************************************************************/
+int uart_write(int fd, void *buffer, int size)
+{
+    int sel_op, ret;
+    int flush_max = 0;
+    unsigned char aux[1];
+    while(flush_max < 256){
+        sel_op = input_timeout(fd, 0);
+        if (sel_op > 0){
+            ret = read(fd, aux, 1);
+            if (ret != 1){
+                /* error at uart line */
+                return -1;
+            }
+        }else if (sel_op == 0){
+            break;
+        }else{
+            /* error at uart line */
+            return -2;
+        }
+        flush_max++;
+    }
+    return write(fd, buffer, size);
+}
+
+
 /***********************************************************************************************//**
  * Performs a read with timeouts.
  **************************************************************************************************/
@@ -424,7 +453,6 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
         do{
             gettimeofday(&start, NULL);
             wait_microsec = timeout;
-            printfe("Timeout to run: %lld\n", wait_microsec);
             sel_op = input_timeout(fd, wait_microsec);
             if(sel_op == 0)
             {
@@ -499,7 +527,7 @@ void init_rotor_control (int fd)
     do{
         buf[0] = (char) 'I';
         buf[1] = (char) '\n';
-        write(fd, buf, 2);
+        uart_write(fd, buf, 2);
         /* Recv the yack/nack */
         if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
             buf[len - 1] = '\0';
