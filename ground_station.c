@@ -457,8 +457,10 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
             if(sel_op == 0)
             {
                 // Timeout
+                printfe("[UART control] Timed out\n");
                 return -1;
             }else if(sel_op < 0){
+                printfe("[UART control] Error setting select\n");
                 // Error setting the select
                 if(errno == EINTR) continue;
                 else return -2;
@@ -469,6 +471,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
             {
                 accumulated_size++;
             }else{
+                printfe("[UART control] Error reading from UART\n");
                 return -1;
             }
 
@@ -494,7 +497,6 @@ int open_rotor_interface(const char * tty_path)
         exit(EXIT_FAILURE);
     }
 
-    fcntl(fd, F_SETFL);             // Configure port reading
     tcgetattr(fd, &options);        // Get the current options for the port
     cfsetispeed(&options, B38400);   // Set the baud rates to 230400
     cfsetospeed(&options, B38400);
@@ -505,12 +507,6 @@ int open_rotor_interface(const char * tty_path)
     options.c_cflag &= ~CSIZE;              // Mask data size
     options.c_cflag |=  CS8;                // Select 8 data bits
     options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control
-
-    // Enable data to be processed as raw input
-    options.c_lflag &= ~(ICANON | ECHO | ISIG);
-
-    options.c_cc[VMIN]  =  0;           // 1 bytes to read
-    options.c_cc[VTIME]  =  0;         // 10 * 0.1 seconds read timeout
 
     // Set the new attributes
     tcflush( fd, TCIFLUSH );
@@ -524,6 +520,9 @@ void init_rotor_control (int fd)
     int ret;
     int len = 5;
     int limit = 0;
+    
+    /* The arduino when powered for the first time is not initialised in the two following seconds */
+    /* Either sleep or repeat the write/read sequence... */
     do{
         buf[0] = (char) 'I';
         buf[1] = (char) '\n';
