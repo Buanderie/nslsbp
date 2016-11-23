@@ -13,7 +13,7 @@ MARK_AS_ADVANCED(
 )
 
 link_directories(${LIBRARY_OUTPUT_PATH})
-link_directories(/usr/lib/bsx)
+link_directories(/usr/lib/)
 
 add_subdirectory(src)
 add_subdirectory(apps)
