@@ -66,30 +66,31 @@ int dbman_get_hk_data(HKData * data)
                                      "`row_id` DESC LIMIT 0,1") == 0) {
             if((result = mysql_store_result(mysql_handle)) != NULL) {
                 while((row = mysql_fetch_row(result)) != NULL) {
+                    /* Changed strtod to strtof in all the float values */
                     data->gps.time_local    = strtol(row[1],  NULL, 10);
                     data->gps.time_gps      = strtol(row[2],  NULL, 10);
-                    data->gps.lat           = strtod(row[3],  NULL);
-                    data->gps.lng           = strtod(row[4],  NULL);
-                    data->gps.gspeed        = strtod(row[5],  NULL);
-                    data->gps.sea_alt       = strtod(row[6],  NULL);
-                    data->gps.geo_alt       = strtod(row[7],  NULL);
-                    data->mot.acc_x         = strtod(row[8],  NULL);
-                    data->mot.acc_y         = strtod(row[9],  NULL);
-                    data->mot.acc_z         = strtod(row[10], NULL);
-                    data->mot.gyro_x        = strtod(row[11], NULL);
-                    data->mot.gyro_y        = strtod(row[12], NULL);
-                    data->mot.gyro_z        = strtod(row[13], NULL);
-                    data->mot.mag_x         = strtod(row[14], NULL);
-                    data->mot.mag_y         = strtod(row[15], NULL);
-                    data->mot.mag_z         = strtod(row[16], NULL);
-                    data->amb.cpu_temp      = strtod(row[17], NULL);
-                    data->amb.gpu_temp      = strtod(row[18], NULL);
-                    data->amb.in_temp       = strtod(row[19], NULL);
-                    data->amb.in_pressure   = strtod(row[20], NULL);
-                    data->amb.in_calc_alt   = strtod(row[21], NULL);
-                    data->amb.out_temp      = strtod(row[22], NULL);
-                    data->amb.out_pressure  = strtod(row[23], NULL);
-                    data->amb.out_calc_alt  = strtod(row[24], NULL);
+                    data->gps.lat           = strtof(row[3],  NULL);
+                    data->gps.lng           = strtof(row[4],  NULL);
+                    data->gps.gspeed        = strtof(row[5],  NULL);
+                    data->gps.sea_alt       = strtof(row[6],  NULL);
+                    data->gps.geo_alt       = strtof(row[7],  NULL);
+                    data->mot.acc_x         = strtof(row[8],  NULL);
+                    data->mot.acc_y         = strtof(row[9],  NULL);
+                    data->mot.acc_z         = strtof(row[10], NULL);
+                    data->mot.gyro_x        = strtof(row[11], NULL);
+                    data->mot.gyro_y        = strtof(row[12], NULL);
+                    data->mot.gyro_z        = strtof(row[13], NULL);
+                    data->mot.mag_x         = strtof(row[14], NULL);
+                    data->mot.mag_y         = strtof(row[15], NULL);
+                    data->mot.mag_z         = strtof(row[16], NULL);
+                    data->amb.cpu_temp      = strtof(row[17], NULL);
+                    data->amb.gpu_temp      = strtof(row[18], NULL);
+                    data->amb.in_temp       = strtof(row[19], NULL);
+                    data->amb.in_pressure   = strtof(row[20], NULL);
+                    data->amb.in_calc_alt   = strtof(row[21], NULL);
+                    data->amb.out_temp      = strtof(row[22], NULL);
+                    data->amb.out_pressure  = strtof(row[23], NULL);
+                    data->amb.out_calc_alt  = strtof(row[24], NULL);
                 }
                 mysql_free_result(result);
                 dbman_disconnect();
@@ -156,9 +157,9 @@ int dbman_get_last_position(double *lat, double *lon, double *alt)
                                      " ORDER BY `row_id` DESC LIMIT 0,1") == 0) {
             if((result = mysql_store_result(mysql_handle)) != NULL) {
                 while((row = mysql_fetch_row(result)) != NULL) {
-                    *lat = strtod(row[0], NULL);
-                    *lon = strtod(row[1], NULL);
-                    *alt = strtod(row[2], NULL);
+                    *lat = strtof(row[0], NULL);
+                    *lon = strtof(row[1], NULL);
+                    *alt = strtof(row[2], NULL);
                 }
                 mysql_free_result(result);
                 dbman_disconnect();

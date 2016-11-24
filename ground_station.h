@@ -16,7 +16,8 @@
 /*** INCLUDES *************************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <stdint.h>
+#include <time.h>                    
 #include <errno.h>
 #include <stdbool.h>
 #include <pthread.h>
@@ -28,7 +29,7 @@
 #include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-
+                    
 #include "dbman.h"
 
 /*** PARAMETERS ***********************************************************************************/
@@ -36,6 +37,9 @@
 #define EARTH_RADIUS    6371e3 /* in metres. */
 #define DEG2RAD(x)      (x * PI / 180.0)
 #define RAD2DEG(x)      (x * 180.0 / PI)
+
+#define UPC_WEB_SERVER      "http://www.upc.edu"
+#define UPC_GET_DUTY_CYCLE  30
 
 #define KEY_MENU_UP         '8'
 #define KEY_MENU_DOWN       '2'
@@ -67,31 +71,53 @@
 #ifdef GROUND_STATION_DEBUG
     #define printfd(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") %c " \
-            fmt "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
+            fmt "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfdg(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") %c " DBG_GREY \
-            fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
+            fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfe(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_REDB    "E" DBG_NOCOLOR ") %c " \
-            DBG_REDD fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
+            DBG_REDD fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfw(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_YELLOW  "W" DBG_NOCOLOR ") %c " \
-            fmt "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
+            fmt "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfo(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_GREENB  "o" DBG_NOCOLOR ") %c " \
-            DBG_GREEND fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : ' '), ## __VA_ARGS__); \
+            DBG_GREEND fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
 #else
     #define printfd(fmt, ...) do { } while (0)
 #endif
 
 /*** TYPEDEFS *************************************************************************************/
-typedef enum control_mode {MODE_MANUAL, MODE_AUTO} control_mode;
+/* Mode_manual stands for keyboard-based antenna moving
+ * Mode_auto stands for beacon-based antenna positioning
+ * Mode guided stands for UPCspace data antenna guidance
+ * Yes, I used 3 synonims to write "antenna pointing"
+ */
 
+typedef enum control_mode {MODE_MANUAL, MODE_AUTO, MODE_GUIDED} control_mode;
+
+typedef struct UPCData{
+    char        http_utc[26];
+    char        msg_id[26];
+    char        tx_time[26];
+    char        iridium_lat[26];
+    char        iridium_lng[26];
+    char        iridium_cep[26];
+    char        lat[26];
+    char        lng[26];
+    char        alt[26];
+    char        in_temp[26];
+    char        out_temp[26];
+    char        baro_alt[26];
+    char        n_sat[26];
+    char        state[26];
+}UPCData;
 
 
 /*** GLOBAL VARIABLES: ****************************************************************************/
@@ -109,14 +135,21 @@ extern bool req_el_down;
 extern bool req_az_cw;
 extern bool req_az_ccw;
 extern bool req_go_home;
+extern UPCData guided_pos;
+extern pthread_mutex_t dbupc_mutex;
 
 /*** FUNCTION HEADERS *****************************************************************************/
 void print_menu(void);
+
 const char * curr_time_format(void);
+time_t utc_time_to_epoch(const char *);
+
 void rotors_get_az_el(int fd, double * az, double * el);
 void rotors_set_az_el(int fd, double az, double el);
 void rotors_home(int fd);
+
 void * rotor_control(void * arg);
+void * dbupc_control(void * arg);
 
 void init_rotor_control (int fd);
 int open_rotor_interface(const char * tty_path);
