@@ -458,7 +458,7 @@ void rotors_set_az_el(int fd, double v_az, double v_el)
         /* Recv the yack/nack */
         if (uart_read(fd, (unsigned char *) buf, &len, 1 * 1000 * 1000) == 0){
             buf[len - 1] = '\0';
-            if (strcmp("YACK", buf) != 0){
+            if (strcmp("SYACK", buf) != 0){
                 printfe("[Set az/el] Error setting position\n");
             }
         }else{
@@ -475,17 +475,17 @@ void rotors_home(int fd)
     char buf[52];
     /* this indicates max length and ret length */
     int len = 5;
-    buf[0] = 'A';
+    buf[0] = 'H';
     printfd("Setting rotors home...\n");
     uart_write(fd, buf, 2);
     /* Recv the yack/nack */
     /* up to 2 minutes of timeout */
     if((uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000)) == 0) {
         buf[len - 1] = '\0';
-        if(strcmp("YACK", buf) == 0){
+        if(strcmp("HYACK", buf) == 0){
             if((uart_read(fd, (unsigned char *) buf, &len, 120 * 1000 * 1000)) == 0) {
                 buf[len - 1] = '\0';
-                if(strcmp("DONE", buf) != 0) {
+                if(strcmp("HDONE", buf) != 0) {
                     printfe("[Rotors home] Error sending command -> Autohome does not work\n");
                 }else{
                     printfo("[Rotors home] Rotors correctly set to home\n");
@@ -498,6 +498,63 @@ void rotors_home(int fd)
         }
     }else{
         printfe("[Rotors home] Error reading from UART -> No AutoHome set\n");
+    }
+}
+
+/***********************************************************************************************//**
+ * Tell the rotors to abort any operation ongoing (i.e. autohome abort or set abort).
+ **************************************************************************************************/
+void rotors_abort(int fd)
+{
+    /*  TODO: Wondering that you cannot send an ABORT to rotors home because this program
+        is waiting
+        to finish the HOME operation... Maybe fix that, doing a polling on both abort signal and
+        arduino file descriptor... */
+    char buf[2];
+    buf[0] = (char) 'A';
+    buf[1] = (char) '\n';
+    uart_write(fd, buf, 2);
+    /* Recv the yack/nack */
+    if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
+        buf[len - 1] = '\0';
+        if (strcmp(buf, "AYACK") == 0) {
+            printfo("Rotors aborted the operation successfully\n");
+            return;
+        } else if (strcmp(buf, "HDONE") == 0){
+            printfo("Autohome stopped\n");
+            return;
+        }
+    }else{
+        printfe("[Rotor control] Error reading from UART\n");
+    }
+}
+
+/***********************************************************************************************//**
+ * Tell the rotors that the specified position AZ, EL is the actual position of the rotors.
+ * Equivalent to add an offset to the motors!
+ **************************************************************************************************/
+void rotors_config_pos(int fd, double v_az, double v_el)
+{
+    char buf[52];
+    int len;
+
+    if(v_az < 0.0) v_az = 0.0;
+    if(v_el < 0.0) v_el = 0.0;
+    len = sprintf(buf+1, "%lf,%lf\n", v_az, v_el);
+    if (len > 0){
+        printfd("Configuring azimuth (%.2lf) and elevation (%.2lf)\n", v_az, v_el);
+        /* length of the floats + the type of command */
+        buf[0] = (char) 'C';
+        uart_write(fd, buf, len + 1);
+        /* Recv the yack/nack */
+        if (uart_read(fd, (unsigned char *) buf, &len, 1 * 1000 * 1000) == 0){
+            buf[len - 1] = '\0';
+            if (strcmp("CYACK", buf) != 0){
+                printfe("[Config az/el] Error setting position\n");
+            }
+        }else{
+            printfe("[Config az/el] Error reading from UART\n");
+        }
     }
 }
 
@@ -680,7 +737,7 @@ void init_rotor_control (int fd)
         /* Recv the yack/nack */
         if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
             buf[len - 1] = '\0';
-            if (strcmp(buf, "NACK") == 0) {
+            if (strcmp(buf, "IYACK") == 0) {
                 printfo("Rotors successfully initialized\n");
                 return;
             } else {
