@@ -17,9 +17,9 @@
 
 #include <sensors.h>
 
-#define GPS_OFF
-#define IMU_OFF
-#define TEM_OFF
+//#define GPS_OFF
+//#define IMU_OFF
+//#define TEM_OFF
 //#define BEACON_OFF
 
 int
@@ -116,7 +116,7 @@ init_temp_sensor()
 	bmp180_set_oss(bmp, 1);
 	bmp180_close(bmp);
 
-	address = 0x25;
+	address = 0x18;
 	void *mcp = mcp9808_init(address, i2c_device);
 	if (mcp == NULL){
 		fprintf(stderr, "Initialization error on temperature sensor 2\n");
@@ -199,7 +199,7 @@ temp_read(_ambient_sensors * amb_sens)
 		exit ( EXIT_FAILURE );
 	}
 
-	address = 0x25;
+	address = 0x18;
 	void *mcp = mcp9808_init(address, i2c_device);
 	if (mcp == NULL){
 		fprintf(stderr, "Initialization error on temperature sensor 2\n");
