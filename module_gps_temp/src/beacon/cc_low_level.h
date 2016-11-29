@@ -28,7 +28,7 @@
 #define MAX_PKT_LEN     (PKTLEN - 1)        // Maximum packet length (in bytes). The -1 accounts for the length field (datasheet page 38).
 #define RS_PKT_LEN      PKTLEN - 32
 
-#define GPIO_COMMS_GS0  4
+#define GPIO_COMMS_PAC  4
 
 // Strobe commands
 #define STROBE_SRES     0x30    // Reset chip.

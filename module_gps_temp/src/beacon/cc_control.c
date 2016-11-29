@@ -28,8 +28,8 @@ int  spifd;
 int gpio_prepare()
 {
     wiringPiSetup();
-    pinMode(GPIO_COMMS_GS0,OUTPUT);
-    digitalWrite(GPIO_COMMS_GS0,LOW);
+    pinMode(GPIO_COMMS_PAC,OUTPUT);
+    digitalWrite(GPIO_COMMS_PAC,LOW);
     return NOERROR;
 }
 
@@ -42,7 +42,7 @@ int gpio_prepare()
  ****************************************************************************************************/
 int gpio_high()
 {
-    digitalWrite(GPIO_COMMS_GS0, HIGH);
+    digitalWrite(GPIO_COMMS_PAC, HIGH);
     usleep(100000);
     return NOERROR;
 }
@@ -56,7 +56,7 @@ int gpio_high()
  ****************************************************************************************************/
 int gpio_low()
 {
-    digitalWrite(GPIO_COMMS_GS0, LOW);
+    digitalWrite(GPIO_COMMS_PAC, LOW);
     usleep(100000);
     return NOERROR;
 }
@@ -335,5 +335,7 @@ void BeaconWrite(const void * buff, int size)
     /* now data is filled with 223 bytes */
     /* go into the RS encoder */
     encode_rs_message(data, 223, coded_data, 255);
+    gpio_high();
     send_packet(spifd, coded_data, PKTLEN);
+    gpio_low();
 }
