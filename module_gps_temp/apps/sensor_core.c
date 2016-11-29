@@ -17,9 +17,9 @@
 
 #include <sensors.h>
 
-//#define GPS_OFF
-//#define IMU_OFF
-//#define TEM_OFF
+#define GPS_OFF
+#define IMU_OFF
+#define TEM_OFF
 //#define BEACON_OFF
 
 int
