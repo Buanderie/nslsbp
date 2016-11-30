@@ -488,7 +488,7 @@ GetGPSMessage(
 		rx_len = read_with_timeout(uart_fd, buffer, 1, init_timeout);
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
-		printf("Elapsed time waiting for response RX: %f ms\n", elapsedTime/1000.0);
+		//printf("Elapsed time waiting for response RX: %f ms\n", elapsedTime/1000.0);
 		while( rx_len > 0 && message_delivered == 0 && (++recv_timeout < recv_limit) )
 		{
 			if (buffer[0] == (unsigned char) UBX_ID)
