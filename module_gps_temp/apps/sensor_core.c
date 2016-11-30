@@ -252,6 +252,7 @@ beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_senso
 	memcpy(&data.gps, gps_data, sizeof(_gps_data));
 	memcpy(&data.mot, motion_sens, sizeof(_motion_sensors));
 	memcpy(&data.amb, amb_sens, sizeof(_ambient_sensors));
+	dbman_save_hk_data(&data);
 	BeaconWrite((const void *) &data, sizeof(HKData));
 	#endif 
 }
@@ -290,42 +291,41 @@ main (void)
 		gps_read(&gps_data, gps_fd);
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		printf("Elapsed time reading GPS: %f ms\n", elapsedTime/1000.0);
+		//printf("Elapsed time reading GPS: %f ms\n", elapsedTime/1000.0);
 
 		gettimeofday(&t3, NULL);
 		imu_read(&motion_sens);
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		printf("Elapsed time reading IMU: %f ms\n", elapsedTime/1000.0);
+		//printf("Elapsed time reading IMU: %f ms\n", elapsedTime/1000.0);
 
 		gettimeofday(&t3, NULL);
 		temp_read(&amb_sens);
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		printf("Elapsed time reading TEMP: %f ms\n", elapsedTime/1000.0);
+		//printf("Elapsed time reading TEMP: %f ms\n", elapsedTime/1000.0);
 
 		gettimeofday(&t3, NULL);
 		beacon_write(&gps_data, &motion_sens, &amb_sens);
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		printf("Elapsed time writing beacon: %f ms\n", elapsedTime/1000.0);
+		//printf("Elapsed time writing beacon: %f ms\n", elapsedTime/1000.0);
 
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
-		printf("Elapsed time doing all: %f ms\n", elapsedTime/1000.0);
+		//printf("Elapsed time doing all: %f ms\n", elapsedTime/1000.0);
 		/* sleep (1 000 000 useconds - time_elapsed) in doing beacon write, etc */
-		printf("Values readed:\n");
-	    printf("Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
-	    printf("Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
+		//printf("Values readed:\n");
+	    //printf("Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
+	    //printf("Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
 
-	    printf( "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
-	    printf( "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
-	    printf( "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
+	    //printf( "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
+	    //printf( "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
+	    //printf( "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
 
-	    printf("In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
-	    printf("In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
+	    //printf("In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
+	    //printf("In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
 	 	usleep(5 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
-		/*dbman_save_gps_data(&data);*/
 	}
 }
 	
