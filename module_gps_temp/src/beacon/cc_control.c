@@ -301,7 +301,7 @@ int setup()
 
 int BeaconConnect()
 {
-    int err
+    int err;
     err = setup();
     if (err != NOERROR){
         fprintf(stderr, "SETUP error: %d\n", err);
