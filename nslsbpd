@@ -12,8 +12,8 @@
 
 start() {
     echo -n "Starting NSL Stratospheric Balloon Payload framework..."
-    daemon --name=gps       --respawn --stdout=/var/log/stdout_gps.log --stderr=/var/log/stderr_gps.log  gps_process
     daemon --name=xlauncher --respawn                                                                    xlauncher
+    daemon --name=gps       --respawn --output=/var/log/stdout_gps.log --stderr=/var/log/stderr_gps.log  gps_process
     echo " done."
 }
 # Restart the service
