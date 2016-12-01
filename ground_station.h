@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <time.h>                    
+#include <time.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <pthread.h>
@@ -29,7 +29,7 @@
 #include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-                    
+
 #include "dbman.h"
 
 /*** PARAMETERS ***********************************************************************************/
@@ -147,6 +147,8 @@ time_t utc_time_to_epoch(const char *);
 void rotors_get_az_el(int fd, double * az, double * el);
 void rotors_set_az_el(int fd, double az, double el);
 void rotors_home(int fd);
+void rotors_abort(int fd);
+void rotors_config_pos(int fd, double v_az, double v_el);
 
 void * rotor_control(void * arg);
 void * dbupc_control(void * arg);

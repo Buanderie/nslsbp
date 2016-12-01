@@ -56,8 +56,8 @@ int main(int argc, char ** argv)
         printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt> <az_offset> <el_offset>\n");
         return -1;
     }else if (argc < 7){
-        az_offset = 0.0;
-        el_offset = 0.0;
+        offset_az = 0.0;
+        offset_el = 0.0;
     }else if (argc > 7){
         printfe("Wrong number of arguments. Local (GS) device, latitude, longitude and altitude are required\n");
         printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt> <az_offset> <el_offset>\n");
@@ -248,7 +248,7 @@ int main(int argc, char ** argv)
                 printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
                 rotors_set_az_el(fd, az, el);
             }
-            
+
         }
         usleep(500000); /* half second of duty cycling */
     }
@@ -318,7 +318,7 @@ void * dbupc_control(void * arg)
             }
         }
         /* close */
-        fclose(fp);        
+        fclose(fp);
         /* now it is safe to ask for a mutex and copy the values to the global variable */
         if (have_data == true){
             /* ask for mutex and update the global var */
@@ -518,10 +518,13 @@ void rotors_home(int fd)
 void rotors_abort(int fd)
 {
     /*  TODO: Wondering that you cannot send an ABORT to rotors home because this program
-        is waiting
-        to finish the HOME operation... Maybe fix that, doing a polling on both abort signal and
-        arduino file descriptor... */
+     *   is waiting
+     *   to finish the HOME operation... Maybe fix that, doing a polling on both abort signal and
+     *   arduino file descriptor...
+     */
     char buf[2];
+    int ret, len;
+
     buf[0] = (char) 'A';
     buf[1] = (char) '\n';
     uart_write(fd, buf, 2);
@@ -594,7 +597,7 @@ time_t utc_time_to_epoch(const char * timestamp)
 {
     struct tm tm;
     time_t epoch;
-    if (sscanf(timestamp, "%u-%u-%u %u:%u:%u", 
+    if (sscanf(timestamp, "%u-%u-%u %u:%u:%u",
                 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
                 &tm.tm_hour, &tm.tm_min, &tm.tm_sec) == 6){
         tm.tm_year -= 1900;
@@ -622,7 +625,7 @@ static int input_timeout(int fd, long long microsec)
     timeout.tv_usec = microsec;
 
     /* select returns 0 if timeout, 1 if input available, -1 if error. */
-    return (select (FD_SETSIZE, &set, NULL, NULL, &timeout));   
+    return (select (FD_SETSIZE, &set, NULL, NULL, &timeout));
 }
 
 
@@ -667,7 +670,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
     int buf_size = *size;
     int accumulated_size = 0;
     if(timeout > 0)
-    {    
+    {
         do{
             gettimeofday(&start, NULL);
             wait_microsec = timeout;
