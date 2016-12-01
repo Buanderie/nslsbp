@@ -19,6 +19,7 @@ double gs_lng;
 double gs_alt;
 bool gs_exit = false;
 double az, el;
+double offset_az, offset_el;
 char tty_dev_name[26];
 int fd;
 control_mode mode = MODE_MANUAL;
@@ -50,9 +51,16 @@ int main(int argc, char ** argv)
     double delta_lat, delta_lng, delta_alt, dist, payload_lat, payload_lng, payload_alt;
     double aux, arc, x, y;
 
-    if(argc != 5) {
+    if(argc < 5) {
         printfe("Wrong number of arguments. Local (GS) device, latitude, longitude and altitude are required\n");
-        printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt>\n");
+        printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt> <az_offset> <el_offset>\n");
+        return -1;
+    }else if (argc < 7){
+        az_offset = 0.0;
+        el_offset = 0.0;
+    }else if (argc > 7){
+        printfe("Wrong number of arguments. Local (GS) device, latitude, longitude and altitude are required\n");
+        printfd("Issue: ./ground_station </dev/tty...> <lat> <lon> <alt> <az_offset> <el_offset>\n");
         return -1;
     }
     /* Save arguments: -------------------------------------------------------------------------- */
@@ -60,7 +68,8 @@ int main(int argc, char ** argv)
     gs_lat = DEG2RAD(strtod(argv[2], NULL));
     gs_lng = DEG2RAD(strtod(argv[3], NULL));
     gs_alt = strtod(argv[4], NULL);
-
+    offset_az = strtod(argv[5], NULL);
+    offset_el = strtod(argv[6], NULL);
     /* Configure terminal and user input settings: ---------------------------------------------- */
 
     if(!isatty(0)) {   /* Check that input is from a tty */
@@ -489,6 +498,8 @@ void rotors_home(int fd)
                     printfe("[Rotors home] Error sending command -> Autohome does not work\n");
                 }else{
                     printfo("[Rotors home] Rotors correctly set to home\n");
+                    rotors_config_pos(fd, offset_az, offset_el);
+                    rotors_set_az_el(fd, 0.0, 0.0);
                 }
             }else{
                 printfe("[Rotors home] Error reading from UART -> Autohome timedout\n");
