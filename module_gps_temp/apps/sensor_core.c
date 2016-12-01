@@ -136,7 +136,7 @@ gps_read(_gps_data * gps_data, int uart_fd)
 	int rx_len;
 	memset(gps_data, 0, sizeof(_gps_data));
 	if (rx_len = GetGPSMessage(uart_fd, NAV_PVT, recv_message), rx_len > 0 ){
-		ParseUBXPVT(recv_message, rx_len, gps_data);		
+		ParseUBXPVT(recv_message, rx_len, gps_data);
 		return 0;
 	}else if (rx_len < 0){
 		fprintf(stderr, "Error trying to get GPS data\n");
@@ -174,7 +174,7 @@ imu_read(_motion_sensors * motion_sens)
 				motion_sens->mag_z = 0.0;
 	          return -1;
 	          break;
-	        
+
 	        case IMUPI_I2C_DEV_NOT_FOUND:
 	          	fprintf (stderr, "Device not found.\n" );
 	          	motion_sens->acc_x = 0.0;
@@ -187,10 +187,10 @@ imu_read(_motion_sensors * motion_sens)
 
 				motion_sens->mag_x = 0.0;
 				motion_sens->mag_y = 0.0;
-				motion_sens->mag_z = 0.0;	          
+				motion_sens->mag_z = 0.0;
 	          return -1;
 	          break;
-	        
+
 	        case IMUPI_I2C_READ_ERROR:
 	          	fprintf (stderr, "I2C read error.\n" );
   	          	motion_sens->acc_x = 0.0;
@@ -206,7 +206,7 @@ imu_read(_motion_sensors * motion_sens)
 				motion_sens->mag_z = 0.0;
 	          return -1;
 	          break;
-	        
+
 	        default:
 	         	fprintf (stderr, "Read errror.\n" );
   	          	motion_sens->acc_x = 0.0;
@@ -312,7 +312,7 @@ beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_senso
 	dbman_save_hk_data(&data);
 	ret = BeaconWrite((const void *) &data, sizeof(HKData));
 	return ret;
-	#endif 
+	#endif
 	return 0;
 }
 
@@ -367,11 +367,11 @@ main (void)
 			init_temp_sensor();
 			_init_temp = 1;
 		}
-		
+
 		if (gps_read(&gps_data, gps_fd) != 0){
 			_init_gps = 0;
 		}
-		
+
 		if (imu_read(&motion_sens) != 0){
 			_init_imu = 0;
 		}
@@ -379,7 +379,7 @@ main (void)
 		if (temp_read(&amb_sens) != 0){
 			_init_temp = 0;
 		}
-		
+
 		if (beacon_write(&gps_data, &motion_sens, &amb_sens) != 0){
 			_init_beacon = 0;
 		}
