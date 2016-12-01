@@ -96,7 +96,7 @@ int setup()
     char    patable[] = {0x12, 0x0E, 0x1D, 0x34, 0x60, 0x84, 0xC8, 0xC0}; // Register configuration.
 
     // Open config file
-    cfgfd = fopen("comms.conf","r");
+    cfgfd = fopen("/home/pi/nslsbp/module_gps_temp/bin/comms.conf","r");
     if(cfgfd == NULL) return EOPEN;
     // Set default values:
     timeouts = CONF_DEF_HW_TIMEOUT;
@@ -325,7 +325,7 @@ void BeaconWrite(const void * buff, int size)
     }
     /*  thats a trick, but as send_packet is adding a byte, we have to tell to the RS encoder
         that the first byte will be == to the size of the PKT, in that case is 0xFE (254) */
-    /*  part of the trick, send data+1, without passing the 0xFE length byte 
+    /*  part of the trick, send data+1, without passing the 0xFE length byte
         not that MAX_PKT_LEN is 254. */
 
     /* We do not care, we do the padding here xD */
