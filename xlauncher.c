@@ -70,7 +70,8 @@ restart:
             close(pipe1[WRITE]);    /* stdout is now redirected to Pipe 1 (W). */
             close(pipe1[READ]);     /* tee does not read from Pipe 1. */
 
-            sprintf(vitow_saved_filename, "vitow_input_%ld", time(NULL));
+            system("mkdir -p /home/pi/nslsbp/vitow_input/");
+            sprintf(vitow_saved_filename, "/home/pi/nslsbp/vitow_input/vitow_input_%ld", time(NULL));
             execlp("tee", "tee", vitow_saved_filename, (char *)NULL);
 
         } else if(pid_tee > 0) {
