@@ -4,7 +4,7 @@
 #include <termios.h>		//Used for UART
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h> 
+#include <sys/time.h>
 
 #include <gps.h>
 #include <mpu-9150.h>
@@ -97,7 +97,7 @@ init_imu()
 		}
 	}
 	printf("IMU connect DONE\n");
-	#endif	
+	#endif
 }
 
 void
@@ -105,7 +105,7 @@ init_temp_sensor()
 {
 	#ifndef TEM_OFF
   	char i2c_device[] = "/dev/i2c-1";
-  	int address = 0x77;	
+  	int address = 0x77;
 	printf("Temperature connect\n");
 	/* I2C Temp/Baro sensor INIT */
 	void *bmp = bmp180_init(address, i2c_device);
@@ -135,10 +135,10 @@ gps_read(_gps_data * gps_data, int uart_fd)
 	int rx_len;
 	memset(gps_data, 0, sizeof(_gps_data));
 	if (rx_len = GetGPSMessage(uart_fd, NAV_PVT, recv_message), rx_len > 0 ){
-		ParseUBXPVT(recv_message, rx_len, gps_data);		
+		ParseUBXPVT(recv_message, rx_len, gps_data);
 	}else if (rx_len < 0){
 		fprintf(stderr, "Error trying to get GPS data\n");
-		exit(-1);
+		//exit(-1);
 	}
 	#endif
 }
@@ -147,28 +147,28 @@ void
 imu_read(_motion_sensors * motion_sens)
 {
 	#ifndef IMU_OFF
-	double a[3], g[3], m[3];		
+	double a[3], g[3], m[3];
 	int ret = imupi_read( a, g, m );
     if ( ret )  {
 	    switch( ret ) {
 	        case IMUPI_NO_ERROR:
 	          break;
-	      
+
 	        case IMUPI_INIT_ERROR:
 	          fprintf (stderr, "Trying to read an uninitialized device.\n" );
-	          exit( EXIT_FAILURE );
-	        
+	          //exit( EXIT_FAILURE );
+
 	        case IMUPI_I2C_DEV_NOT_FOUND:
 	          fprintf (stderr, "Device not found.\n" );
-	          exit( EXIT_FAILURE );
-	        
+	        //   exit( EXIT_FAILURE );
+
 	        case IMUPI_I2C_READ_ERROR:
 	          fprintf (stderr, "I2C read error.\n" );
-	          exit( EXIT_FAILURE );
-	        
+	        //   exit( EXIT_FAILURE );
+
 	        default:
 	          fprintf (stderr, "Read errror.\n" );
-	          exit( EXIT_FAILURE );
+	        //   exit( EXIT_FAILURE );
 		}
 	}
 	motion_sens->acc_x = a[0];
@@ -196,14 +196,14 @@ temp_read(_ambient_sensors * amb_sens)
 	void *bmp = bmp180_init(address, i2c_device);
 	if (bmp == NULL){
 		fprintf(stderr, "Initialization error on temperature sensor 1\n");
-		exit ( EXIT_FAILURE );
+		// exit ( EXIT_FAILURE );
 	}
 
 	address = 0x18;
 	void *mcp = mcp9808_init(address, i2c_device);
 	if (mcp == NULL){
 		fprintf(stderr, "Initialization error on temperature sensor 2\n");
-		exit ( EXIT_FAILURE );
+		// exit ( EXIT_FAILURE );
 	}
 	bmp180_set_oss(bmp, 1);
 
@@ -216,7 +216,7 @@ temp_read(_ambient_sensors * amb_sens)
 	amb_sens->out_temp = mcp9808_temperature(mcp);
 	amb_sens->out_pressure = amb_sens->in_pressure;
 	amb_sens->out_calc_alt = amb_sens->in_calc_alt;
-	
+
 	mcp9808_close(mcp);
 
     int t_aux = 0;
@@ -254,7 +254,7 @@ beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_senso
 	memcpy(&data.amb, amb_sens, sizeof(_ambient_sensors));
 	dbman_save_hk_data(&data);
 	BeaconWrite((const void *) &data, sizeof(HKData));
-	#endif 
+	#endif
 }
 
 int
@@ -267,7 +267,7 @@ main (void)
 	printf("Size of gps_data: %d\n", (int) sizeof(_gps_data));
 	printf("Size of motion_data: %d\n", (int) sizeof(_motion_sensors));
 	printf("Size of ambient_data: %d\n", (int) sizeof(_ambient_sensors));
-	
+
 	_gps_data gps_data;
 	_ambient_sensors amb_sens;
 	_motion_sensors motion_sens;
@@ -322,10 +322,9 @@ main (void)
 	    //printf( "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
 	    //printf( "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
 
-	    //printf("In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
+	    //printf("In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);
 	    //printf("In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
 	 	usleep(5 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
 	}
 }
-	
