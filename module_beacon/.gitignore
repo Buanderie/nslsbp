@@ -1,6 +1,0 @@
-*.o
-picc1101
-.DS_STORE
-cc1101_handler/bin
-cc1101_handler/build
-cc1101_handler/lib
