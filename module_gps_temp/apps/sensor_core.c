@@ -319,7 +319,7 @@ beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_senso
 int
 main (void)
 {
-	struct timeval t1, t2, t3;
+	struct timeval t1, t2;
 	uint64_t elapsedTime;
 
 	int _init_gps, _init_imu, _init_beacon, _init_temp;
@@ -350,6 +350,7 @@ main (void)
 
 	while(1)
 	{
+		gettimeofday(&t1, NULL);
 		if (_init_gps != 1){
 			gps_fd = init_gps();
 			_init_gps = 1;
@@ -382,6 +383,8 @@ main (void)
 		if (beacon_write(&gps_data, &motion_sens, &amb_sens) != 0){
 			_init_beacon = 0;
 		}
+		gettimeofday(&t2, NULL);
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
 	 	usleep(5 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
 	}
