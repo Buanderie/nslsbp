@@ -92,10 +92,10 @@ restart:
                 sleep(3);
                 system("modprobe ath9k_htc");
                 sleep(3);
-                system("/home/pi/bbs/module_vitow/monitor.sh wlan1 13 > /dev/null");
+                system("/home/pi/nslsbp/module_vitow/monitor.sh wlan1 13 > /dev/null");
                 printfo("WiFI IF should now be in monitor mode\n ");
                 // send_beacon_msg(SYSTEM, "Launching VITOW process");
-                execlp("/home/pi/bbs/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
+                execlp("/home/pi/nslsbp/module_vitow/vitow_tx", "vitow_tx", "wlan1", (char *)NULL);
 
             } else if(pid_vitow > 0) {
                 /* xLauncher process: ----------------------------------------------------------- */
