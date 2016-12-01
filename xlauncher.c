@@ -140,7 +140,7 @@ restart:
                 }
                 if(vitow_error_count < 5) {
                     // send_beacon_msg(SYSTEM, "VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
-                    printfw("VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
+                    printfw("VITOW has failed %d times. Trying to reset processes without system reboot\n", vitow_error_count);
                     goto restart;
                 } else {
                     // send_beacon_msg(SYSTEM, "System will now reboot");
