@@ -314,14 +314,14 @@ int BeaconConnect()
 /* this function encodes a 222 padded array, turns it into a 255 RS protected array and sends it */
 /* this function uses a spifd that has been opened at SETUP function */
 /* is called 223, but is a 222 array that you are passing */
-void BeaconWrite(const void * buff, int size)
+int BeaconWrite(const void * buff, int size)
 {
     unsigned char data[223];
     unsigned char coded_data[PKTLEN];
-    int i;
+    int i, ret;
 
     if (size > 222){
-        return;
+        return -1;
     }
     /*  thats a trick, but as send_packet is adding a byte, we have to tell to the RS encoder
         that the first byte will be == to the size of the PKT, in that case is 0xFE (254) */
@@ -339,6 +339,11 @@ void BeaconWrite(const void * buff, int size)
     /* go into the RS encoder */
     encode_rs_message(data, 223, coded_data, 255);
     gpio_high();
-    send_packet(spifd, coded_data, PKTLEN);
+    ret = send_packet(spifd, coded_data, PKTLEN);
     gpio_low();
+    if (ret != NOERROR){
+        return -1;
+    }else{
+        return 0;
+    }
 }

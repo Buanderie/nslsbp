@@ -7,7 +7,7 @@ int 	BeaconConnect ();
 void 	BeaconClose ();
 
 /* Reading functions */
-void 	BeaconWrite (const void * msg, int len);
+int 	BeaconWrite (const void * msg, int len);
 int 	BeaconRead (void * msg, int maxbuflen); /* returns the source if wanted */
 
 #endif
