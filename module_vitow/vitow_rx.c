@@ -271,6 +271,10 @@ void* rx(void* parameter)
                     } else {
                         printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
                     }
+                } else {
+                    gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
+                    strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                    printfe("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
                 }
                 memset(&hkd, 0, sizeof(hkd));
                 ret = 0;
@@ -438,6 +442,7 @@ void* rx(void* parameter)
         previousId = id;
 
         /* Check whether the KHData `hkd` has all the relevant information to be saved: */
+        #if 0
         if(check_dbg_data(&hkd)) {
             if(dbman_save_hk_data(&hkd) == 0) {
                 if(show_beacon_data) {
@@ -448,8 +453,13 @@ void* rx(void* parameter)
             } else {
                 printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
             }
+        } else {
+            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
+            strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+            printfe("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
         }
         memset(&hkd, 0, sizeof(hkd));
+        #endif
     }
 
 end:

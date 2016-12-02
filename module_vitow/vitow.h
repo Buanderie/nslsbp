@@ -47,7 +47,7 @@
 #define OUTPUT_FILENAME "vitow_output"      /* Filename at RX with the received data.             */
 
 #define LDPC_K          BUFFER_ELEMS
-#define LDPC_N          700
+#define LDPC_N          600
 
 /* Debug symbols and constants (debug purposes only). */
 #define DBG_PARAM_GPS_TIME_LOCAL        0   /* Debug param ID: local SBC time.                    */

@@ -175,18 +175,21 @@ void dump_dbg_data(int dbg_id, HKData * hkd, unsigned int * dbg_param, unsigned 
 void save_dbg_data(unsigned int dbg_param, unsigned int * dbg_value, HKData * hkd)
 {
     /* dbg_param indicates the ID of the parameter sent */
-   switch (dbg_param) {
+    switch (dbg_param) {
         case DBG_PARAM_GPS_TIME_LOCAL:
             memcpy(&hkd->gps.time_local, dbg_value, sizeof(*dbg_value));
             break;
         case DBG_PARAM_GPS_TIME_GPS:
             memcpy(&hkd->gps.time_gps, dbg_value, sizeof(*dbg_value));
+            // printf("GPS time: %u, %u\n", hkd->gps.time_gps, *dbg_value);
             break;
         case DBG_PARAM_GPS_LAT:
             memcpy(&hkd->gps.lat, dbg_value, sizeof(*dbg_value));
+            // printf("GPS lat: %f, %u\n", hkd->gps.lat, *dbg_value);
             break;
         case DBG_PARAM_GPS_LNG:
             memcpy(&hkd->gps.lng, dbg_value, sizeof(*dbg_value));
+            // printf("GPS lng: %f, %u\n", hkd->gps.lng, *dbg_value);
             break;
         case DBG_PARAM_GPS_GSPEED:
             memcpy(&hkd->gps.gspeed, dbg_value, sizeof(*dbg_value));
