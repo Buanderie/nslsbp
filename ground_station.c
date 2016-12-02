@@ -109,14 +109,14 @@ int main(int argc, char ** argv)
                 /* A new value arrived: */
                 last_update_gps = hk.gps.time_gps;
                 last_update_sbc = hk.gps.time_local;
-                printfdg("[GPS data        ] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
+                printfd("[GPS data        ] lat = %.7lf, lng = %.7lf, sea_alt = %.2lf, geo_alt = %.2lf\n",
                     hk.gps.lat, hk.gps.lng, hk.gps.sea_alt, hk.gps.geo_alt);
-                printfdg("[GPS data        ] time(SBC) = %u, time(GPS) = %u, vel = %.2lf\n",
+                printfd("[GPS data        ] time(SBC) = %u, time(GPS) = %u, vel = %.2lf\n",
                     hk.gps.time_local, hk.gps.time_gps, hk.gps.gspeed);
                 if(hk.amb.gpu_temp >= 60.0 || hk.amb.cpu_temp >= 60.0) {
                     printfe("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.amb.in_temp, hk.amb.cpu_temp, hk.amb.gpu_temp);
                 } else {
-                    printfdg("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.amb.in_temp, hk.amb.cpu_temp, hk.amb.gpu_temp);
+                    printfd("[Temperature data] Temp. sensor: %.1lf ºC, CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.amb.in_temp, hk.amb.cpu_temp, hk.amb.gpu_temp);
                 }
 
                 /* Calculate new azimuth and elevation using Haversine formulas to calculate great-circle
