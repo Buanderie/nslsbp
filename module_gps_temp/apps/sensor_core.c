@@ -413,7 +413,10 @@ main (void)
 	    	fprintf(stderr, "In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
 		fprintf(stderr, "In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
 
-	 	usleep(5 * 1000 * 1000 - elapsedTime);
+	 	
+		if (elapsedTime > 4 * 1000 * 1000)
+			elapsedTime = 0;
+		usleep(5 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
 	}
 }

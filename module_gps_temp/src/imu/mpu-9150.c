@@ -39,7 +39,7 @@ int imupi_init( void )  {
   
   /* Open I2C device */
   
-  imupi_dev = open( IMUPI_DEVNAME, O_RDWR );  
+  imupi_dev = open( IMUPI_DEVNAME, O_RDWR | O_NONBLOCK);  
   if ( imupi_dev == -1 )
     return IMUPI_I2C_OPEN_ERROR;
     

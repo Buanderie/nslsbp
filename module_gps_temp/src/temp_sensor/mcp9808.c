@@ -143,7 +143,7 @@ void *mcp9808_init(int address, const char* i2c_device_filepath) {
     
     // open i2c device
     int file;
-    if((file = open(s->i2c_device, O_RDWR)) < 0) {
+    if((file = open(s->i2c_device, O_RDWR | O_NONBLOCK)) < 0) {
         DEBUG("error: %s open() failed\n", s->i2c_device);
         mcp9808_init_error_cleanup(s);
         return NULL;

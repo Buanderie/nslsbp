@@ -32,7 +32,7 @@
 int spi_open(char* port)
 {
     int spifd;
-    spifd = open(port, O_RDWR);
+    spifd = open(port, O_RDWR | O_NONBLOCK);
     if(spifd == -1)
         return EOPEN;
     else
