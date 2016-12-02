@@ -22,6 +22,58 @@ static bool         show_beacon_data = false;   /* Whether to display beacon dat
 
 const of_codec_id_t codec_id = OF_CODEC_LDPC_STAIRCASE_STABLE;  /* Identifier of the codec to use.*/
 
+void print_dbg_data(HKData d)
+{
+    printf("GPS data fetched:\n"
+            "  d.gps.time_local    = %u\n"
+            "  d.gps.time_gps      = %u\n"
+            "  d.gps.lat           = %.4f\n"
+            "  d.gps.lng           = %.4f\n"
+            "  d.gps.gspeed        = %.4f\n"
+            "  d.gps.sea_alt       = %.4f\n"
+            "  d.gps.geo_alt       = %.4f\n"
+            "  d.mot.acc_x         = %.4f\n"
+            "  d.mot.acc_y         = %.4f\n"
+            "  d.mot.acc_z         = %.4f\n"
+            "  d.mot.gyro_x        = %.4f\n"
+            "  d.mot.gyro_y        = %.4f\n"
+            "  d.mot.gyro_z        = %.4f\n"
+            "  d.mot.mag_x         = %.4f\n"
+            "  d.mot.mag_y         = %.4f\n"
+            "  d.mot.mag_z         = %.4f\n"
+            "  d.amb.cpu_temp      = %.4f\n"
+            "  d.amb.gpu_temp      = %.4f\n"
+            "  d.amb.in_temp       = %.4f\n"
+            "  d.amb.in_pressure   = %.4f\n"
+            "  d.amb.in_calc_alt   = %.4f\n"
+            "  d.amb.out_temp      = %.4f\n"
+            "  d.amb.out_pressure  = %.4f\n"
+            "  d.amb.out_calc_alt  = %.4f\n",
+            d.gps.time_local,
+            d.gps.time_gps,
+            d.gps.lat,
+            d.gps.lng,
+            d.gps.gspeed,
+            d.gps.sea_alt,
+            d.gps.geo_alt,
+            d.mot.acc_x,
+            d.mot.acc_y,
+            d.mot.acc_z,
+            d.mot.gyro_x,
+            d.mot.gyro_y,
+            d.mot.gyro_z,
+            d.mot.mag_x,
+            d.mot.mag_y,
+            d.mot.mag_z,
+            d.amb.cpu_temp,
+            d.amb.gpu_temp,
+            d.amb.in_temp,
+            d.amb.in_pressure,
+            d.amb.in_calc_alt,
+            d.amb.out_temp,
+            d.amb.out_pressure,
+            d.amb.out_calc_alt);
+}
 
 /***********************************************************************************************//**
  * Receiveing thread. Launched by the main thread.
@@ -261,29 +313,14 @@ void* rx(void* parameter)
                 printfd("[Buffer changed   ] Buffer ID(old): %d -> Buffer ID(new): %d\n", previousId, id);
 
                 /* Check whether the KHData `hkd` has all the relevant information to be saved: */
-                if(check_dbg_data(&hkd)) {
-                    if(dbman_save_hk_data(&hkd) == 0) {
-                        if(show_beacon_data) {
-                            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
-                            strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-                            printfd("[GPS data         ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
-                        }
-                    } else {
-                        printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
-                    }
-                } else {
-                    gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
-                    strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-                    printfe("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
-                }
-                memset(&hkd, 0, sizeof(hkd));
+                // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+
                 ret = 0;
                 goto end;
             } else {
                 /* Save the debug data in memory (the actual DB insert is performed when there's a
                  * frame ID transition):
                  */
-
             }
         }
 
@@ -442,24 +479,31 @@ void* rx(void* parameter)
         previousId = id;
 
         /* Check whether the KHData `hkd` has all the relevant information to be saved: */
-        #if 0
+        print_dbg_data(hkd);
         if(check_dbg_data(&hkd)) {
             if(dbman_save_hk_data(&hkd) == 0) {
                 if(show_beacon_data) {
                     gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
                     strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-                    printfd("[GPS data         ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                    printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
                 }
             } else {
                 printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
             }
         } else {
-            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
+            if(hkd.gps.time_gps > (time(NULL) + (24 * 3600))) {
+                printfe("[Debug data       ] GPS time is unreliable: %u\n", hkd.gps.time_gps);
+                hkd.gps.time_gps = (time(NULL) + (24 * 3600));
+            }
+            time_t tttt = hkd.gps.time_gps;
+            gps_datetime = localtime(&tttt);
+            perror("localtime");
+            printf("·b2, %p, %p\n", gps_datetime, &(hkd.gps.time_gps));
+            printf("·b3: %u\n", hkd.gps.time_gps);
             strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
             printfe("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
         }
         memset(&hkd, 0, sizeof(hkd));
-        #endif
     }
 
 end:
@@ -497,7 +541,6 @@ end:
 
     return (void *)(intptr_t)ret;
 }
-
 
 /***********************************************************************************************//**
  * Program entry point.

@@ -56,6 +56,7 @@ bool check_dbg_data(HKData * hkd)
         hkd->amb.out_calc_alt != 0.f
     );
 }
+
 /***********************************************************************************************//**
  * Select and copy debug data.
  **************************************************************************************************/
@@ -65,32 +66,26 @@ void dump_dbg_data(int dbg_id, HKData * hkd, unsigned int * dbg_param, unsigned 
         case DBG_PARAM_GPS_TIME_LOCAL:
             *dbg_param = htonl(DBG_PARAM_GPS_TIME_LOCAL);
             memcpy(dbg_value, &hkd->gps.time_local, sizeof(*dbg_value));
-            *dbg_value = htonl(*dbg_value);
             break;
         case DBG_PARAM_GPS_TIME_GPS:
             *dbg_param = htonl(DBG_PARAM_GPS_TIME_GPS);
             memcpy(dbg_value, &hkd->gps.time_gps, sizeof(*dbg_value));
-            *dbg_value = htonl(*dbg_value);
             break;
         case DBG_PARAM_GPS_LAT:
             *dbg_param = htonl(DBG_PARAM_GPS_LAT);
             memcpy(dbg_value, &hkd->gps.lat, sizeof(*dbg_value));
-            *dbg_value = htonl(*dbg_value);
             break;
         case DBG_PARAM_GPS_LNG:
             *dbg_param = htonl(DBG_PARAM_GPS_LNG);
             memcpy(dbg_value, &hkd->gps.lng, sizeof(*dbg_value));
-            *dbg_value = htonl(*dbg_value);
             break;
         case DBG_PARAM_GPS_GSPEED:
             *dbg_param = htonl(DBG_PARAM_GPS_GSPEED);
             memcpy(dbg_value, &hkd->gps.gspeed, sizeof(*dbg_value));
-            *dbg_value = htonl(*dbg_value);
             break;
         case DBG_PARAM_GPS_SEA_ALT:
             *dbg_param = htonl(DBG_PARAM_GPS_SEA_ALT);
             memcpy(dbg_value, &hkd->gps.sea_alt, sizeof(*dbg_value));
-            *dbg_value = htonl(*dbg_value);
             break;
         case DBG_PARAM_GPS_GEO_ALT:
             *dbg_param = htonl(DBG_PARAM_GPS_GEO_ALT);
@@ -181,15 +176,12 @@ void save_dbg_data(unsigned int dbg_param, unsigned int * dbg_value, HKData * hk
             break;
         case DBG_PARAM_GPS_TIME_GPS:
             memcpy(&hkd->gps.time_gps, dbg_value, sizeof(*dbg_value));
-            // printf("GPS time: %u, %u\n", hkd->gps.time_gps, *dbg_value);
             break;
         case DBG_PARAM_GPS_LAT:
             memcpy(&hkd->gps.lat, dbg_value, sizeof(*dbg_value));
-            // printf("GPS lat: %f, %u\n", hkd->gps.lat, *dbg_value);
             break;
         case DBG_PARAM_GPS_LNG:
             memcpy(&hkd->gps.lng, dbg_value, sizeof(*dbg_value));
-            // printf("GPS lng: %f, %u\n", hkd->gps.lng, *dbg_value);
             break;
         case DBG_PARAM_GPS_GSPEED:
             memcpy(&hkd->gps.gspeed, dbg_value, sizeof(*dbg_value));
