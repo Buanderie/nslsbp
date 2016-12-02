@@ -319,7 +319,7 @@ beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_senso
 int
 main (void)
 {
-	struct timeval t1, t2;
+	struct timeval t1, t2, t3;
 	uint64_t elapsedTime;
 
 	int _init_gps, _init_imu, _init_beacon, _init_temp;
@@ -332,7 +332,7 @@ main (void)
 	_gps_data gps_data;
 	_ambient_sensors amb_sens;
 	_motion_sensors motion_sens;
-	sleep(1);
+
 	/* initialize sensors, beacons, sockets... */
 	init_beacon();
 	_init_beacon = 1;
@@ -367,27 +367,38 @@ main (void)
 			init_temp_sensor();
 			_init_temp = 1;
 		}
-
+		gettimeofday(&t3, NULL);
 		if (gps_read(&gps_data, gps_fd) != 0){
 			_init_gps = 0;
 			fprintf(stderr, "GPS Failed\n");
 		}
-
+		gettimeofday(&t2, NULL);
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
+		fprintf(stderr, "Elapsed time reading GPS: %f ms\n", elapsedTime/1000.0);
+		gettimeofday(&t3, NULL);
 		if (imu_read(&motion_sens) != 0){
 			_init_imu = 0;
 			fprintf(stderr, "IMU Failed\n");
 		}
-
+		gettimeofday(&t2, NULL);
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
+		fprintf(stderr, "Elapsed time reading IMU: %f ms\n", elapsedTime/1000.0);
+		gettimeofday(&t3, NULL);
 		if (temp_read(&amb_sens) != 0){
 			_init_temp = 0;
 			fprintf(stderr, "Temp Failed\n");
 		}
-
+		gettimeofday(&t2, NULL);
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
+		fprintf(stderr, "Elapsed time reading TEMP: %f ms\n", elapsedTime/1000.0);
+		gettimeofday(&t3, NULL);
 		if (beacon_write(&gps_data, &motion_sens, &amb_sens) != 0){
 			_init_beacon = 0;
 			fprintf(stderr, "Beacon failed\n");
 		}
-		gettimeofday(&t2, NULL);		
+		gettimeofday(&t2, NULL);
+		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
+		fprintf(stderr, "Elapsed time writing beacon: %f ms\n", elapsedTime/1000.0);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
 
 		fprintf(stderr, "Elapsed Time: %d\n", elapsedTime);
