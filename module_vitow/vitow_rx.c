@@ -313,7 +313,6 @@ void* rx(void* parameter)
                 printfd("[Buffer changed   ] Buffer ID(old): %d -> Buffer ID(new): %d\n", previousId, id);
 
                 /* Check whether the KHData `hkd` has all the relevant information to be saved: */
-                print_dbg_data(hkd);
                 if(check_dbg_data(&hkd)) {
                     if(dbman_save_hk_data(&hkd) == 0) {
                         if(show_beacon_data) {
@@ -325,9 +324,10 @@ void* rx(void* parameter)
                         printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
                     }
                 } else if(show_beacon_data) {
-                    gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
-                    strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-                    printfd("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                    if((gps_datetime = localtime((time_t *)&(hkd.gps.time_gps))) != NULL) {
+                        strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                        printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                    }
                 }
                 memset(&hkd, 0, sizeof(hkd));
                 ret = 0;
@@ -494,7 +494,6 @@ void* rx(void* parameter)
         previousId = id;
 
         /* Check whether the KHData `hkd` has all the relevant information to be saved: */
-        print_dbg_data(hkd);
         if(check_dbg_data(&hkd)) {
             if(dbman_save_hk_data(&hkd) == 0) {
                 if(show_beacon_data) {
@@ -506,9 +505,10 @@ void* rx(void* parameter)
                 printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
             }
         } else if(show_beacon_data) {
-            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
-            strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-            printfd("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+            if((gps_datetime = localtime((time_t *)&(hkd.gps.time_gps))) != NULL) {
+                strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+            }
         }
         memset(&hkd, 0, sizeof(hkd));
     }
