@@ -299,7 +299,7 @@ void * dbupc_control(void * arg)
     UPCData data;
     while(!gs_exit){
         /* Open the command for reading. */
-        fp = fopen("file.csv", "r");
+        fp = fopen("test.csv", "r");
         if (fp == NULL){
             printfe("[DBUPC Control] Error openning CSV file\n");
             exit(1);

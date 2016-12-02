@@ -15,9 +15,10 @@
 #include "vitow.h"
 
 /*** GLOBAL VARIABLES *****************************************************************************/
-char                wlan[100];              /* The WiFi interface name. Filled with argv.         */
+char                wlan[100];                  /* The WiFi interface name. Filled with argv.     */
 static unsigned int previousId;
 static bool         firstId = true;
+static bool         show_beacon_data = false;   /* Whether to display beacon data (GPS) or not.   */
 
 const of_codec_id_t codec_id = OF_CODEC_LDPC_STAIRCASE_STABLE;  /* Identifier of the codec to use.*/
 
@@ -67,6 +68,8 @@ void* rx(void* parameter)
     unsigned char * pu8Payload = u8aReceiveBuffer;
     unsigned char * pu8Symbol = u8aSymbol;
     HKData          hkd;                            /* Housekeeping data. */
+    char            datetime_str[50];               /* The GPS time formated as a string. */
+    struct tm *     gps_datetime;                   /* A date-time struct to display GP time. */
 
     /*  Initiallization of `ses` was wrong:
      *      *ses = previousId;
@@ -224,7 +227,6 @@ void* rx(void* parameter)
         dbg_value = ntohl(dbg_value);
         pu8Payload += sizeof(unsigned int);
 
-        // TODO JF escribe aquí el call a la función complementaria a dumpDbgData. ===========================================================
         save_dbg_data(dbg_param, &dbg_value, &hkd);
 
         if(firstId) {
@@ -261,7 +263,11 @@ void* rx(void* parameter)
                 /* Check whether the KHData `hkd` has all the relevant information to be saved: */
                 if(check_dbg_data(&hkd)) {
                     if(dbman_save_hk_data(&hkd) == 0) {
-                        printfd("[Debug data       ] GPS and Temperature debug data saved to DB\n");
+                        if(show_beacon_data) {
+                            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
+                            strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                            printfd("[GPS data         ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                        }
                     } else {
                         printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
                     }
@@ -430,6 +436,20 @@ void* rx(void* parameter)
 
         fclose(write_ptr);
         previousId = id;
+
+        /* Check whether the KHData `hkd` has all the relevant information to be saved: */
+        if(check_dbg_data(&hkd)) {
+            if(dbman_save_hk_data(&hkd) == 0) {
+                if(show_beacon_data) {
+                    gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
+                    strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                    printfd("[GPS data         ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                }
+            } else {
+                printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
+            }
+        }
+        memset(&hkd, 0, sizeof(hkd));
     }
 
 end:
@@ -470,41 +490,36 @@ end:
 
 
 /***********************************************************************************************//**
- * Dumps len32 32-bit words of a buffer (typically a symbol).
- **************************************************************************************************/
-/* static void dump_buffer_32(void *buf, unsigned int len32)
-{
-    unsigned int *ptr;
-    unsigned int j = 0;
-
-    for (ptr = (unsigned int *)buf; len32 > 0; len32--, ptr++) {
-        if (++j == 10) {
-            j = 0;
-        }
-    }
-}*/
-
-
-/***********************************************************************************************//**
  * Program entry point.
  **************************************************************************************************/
 int main(int argc, char *argv[])
 {
     pthread_t threadHandler;
     void *retval;
+    int arg_show_beacon_data = 0;
 
     srand(time(NULL));
     /* Setup wireless interface: */
-    if(argc == 2)
+    if(argc >= 2)
     {
         sprintf(wlan, "%s", argv[1]);
         printfd("VITOW will use interface '%s'\n", wlan);
+        if(argc >= 3) {
+            arg_show_beacon_data = (int)strtol(argv[2], NULL, 10);
+            if(arg_show_beacon_data) {
+                show_beacon_data = true;
+                printfd("VITOW will print debug data.\n");
+            } else {
+                show_beacon_data = false;       /* This is actually redundant but has been left for
+                                                 * code readiness.
+                                                 */
+            }
+        }
     } else {
         printfe("Wrong number of arguments. WiFi interface name expected.\n");
         printfd("VITOW RX will exit now\n");
         return -1;
     }
-
 
     /* Truncate previous output file: */
     if(truncate(OUTPUT_FILENAME, 0) < 0) {
