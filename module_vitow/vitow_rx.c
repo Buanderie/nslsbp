@@ -479,7 +479,6 @@ void* rx(void* parameter)
         previousId = id;
 
         /* Check whether the KHData `hkd` has all the relevant information to be saved: */
-        print_dbg_data(hkd);
         if(check_dbg_data(&hkd)) {
             if(dbman_save_hk_data(&hkd) == 0) {
                 if(show_beacon_data) {
@@ -490,18 +489,10 @@ void* rx(void* parameter)
             } else {
                 printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
             }
-        } else {
-            if(hkd.gps.time_gps > (time(NULL) + (24 * 3600))) {
-                printfe("[Debug data       ] GPS time is unreliable: %u\n", hkd.gps.time_gps);
-                hkd.gps.time_gps = (time(NULL) + (24 * 3600));
-            }
-            time_t tttt = hkd.gps.time_gps;
-            gps_datetime = localtime(&tttt);
-            perror("localtime");
-            printf("·b2, %p, %p\n", gps_datetime, &(hkd.gps.time_gps));
-            printf("·b3: %u\n", hkd.gps.time_gps);
+        } else if(show_beacon_data) {
+            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
             strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-            printfe("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+            printfd("[GPS data (*)     ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
         }
         memset(&hkd, 0, sizeof(hkd));
     }

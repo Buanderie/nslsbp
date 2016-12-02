@@ -74,6 +74,7 @@
 #define DBG_PARAM_AMB_OUT_TEMP          21  /* Debug param ID: temperature outside.               */
 #define DBG_PARAM_AMB_OUT_PRESSURE      22  /* Debug param ID: pressure outside.                  */
 #define DBG_PARAM_AMB_OUT_CALC_ALT      23  /* Debug param ID: calculated altitude outside.       */
+#define DBG_PARAM_COUNT                 24  /* Number of debug parameters.                        */
 
 #define DBG_REDB    "\x1b[31;1m"
 #define DBG_REDD    "\x1b[31m"
