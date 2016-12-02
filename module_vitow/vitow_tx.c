@@ -227,7 +227,7 @@ void* transmittingThread(void* args)
         ESIsend   = htonl(rand_order[esi]);   /* ESI  */
         IDsend    = htonl(id);                /* ID   */
         /* function redefinition? At vitow_dbg this function is called dump_dbg_data, not dumpDbgData */
-        dump_dbg_data(esi % BUFFER_SIZE, &hkd, &dbg_param, &dbg_value); /* dbg_param and dbg_value. */
+        dump_dbg_data(esi % DBG_PARAM_COUNT, &hkd, &dbg_param, &dbg_value); /* dbg_param and dbg_value. */
 
         memcpy(ptr_buff, &ESIsend, sizeof(ESIsend));
         ptr_buff += sizeof(ESIsend);
