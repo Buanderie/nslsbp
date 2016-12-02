@@ -29,23 +29,23 @@ init_gps()
 	unsigned char recv_message[256];
 	int uart_fd = OpenGPSIface(1000);
 	if (uart_fd == -1){
-	    printf("No GPS Device\n");
+	    fprintf(stderr, "No GPS Device\n");
 	    return 0;
 	}
 	if (SetGPSMessage(uart_fd, CFG_NAV5) < 0){
-		printf("Error\n");
+		fprintf(stderr, "Error\n");
 		exit(-1);
 	}
 	if (GetGPSMessage(uart_fd, CFG_NAV5, recv_message) < 0){
-		printf("Error\n");
+		fprintf(stderr, "Error\n");
 		exit(-1);
 	}
 	if (SetGPSMessage(uart_fd, CFG_DISABLE_NMEA) < 0){
-		printf("Error\n");
+		fprintf(stderr, "Error\n");
 		exit(-1);
 	}
 	if (GetGPSMessage(uart_fd, CFG_DISABLE_NMEA, recv_message) < 0){
-		printf("Error\n");
+		fprintf(stderr, "Error\n");
 		exit(-1);
 	}
 	return uart_fd;
@@ -71,7 +71,7 @@ init_imu()
 {
 	#ifndef IMU_OFF
 	int ret;
-	printf("IMU connect\n");
+	fprintf(stderr, "IMU connect\n");
 	/* I2C IMU interface INIT */
 	if ( ret = imupi_init( ) ) {
 		switch( ret ) {
@@ -96,7 +96,7 @@ init_imu()
 	    	break;
 		}
 	}
-	printf("IMU connect DONE\n");
+	fprintf(stderr, "IMU connect DONE\n");
 	#endif
 }
 
@@ -123,7 +123,7 @@ init_temp_sensor()
 		exit ( EXIT_FAILURE );
 	}
 	mcp9808_close(mcp);
-	printf("Temperature connect DONE\n");
+	fprintf(stderr, "Temperature connect DONE\n");
 	#endif
 	return 0;
 }
@@ -324,15 +324,15 @@ main (void)
 
 	int _init_gps, _init_imu, _init_beacon, _init_temp;
 
-	printf("Size of sending struct: %d\n", (int)sizeof(HKData));
-	printf("Size of gps_data: %d\n", (int) sizeof(_gps_data));
-	printf("Size of motion_data: %d\n", (int) sizeof(_motion_sensors));
-	printf("Size of ambient_data: %d\n", (int) sizeof(_ambient_sensors));
+	fprintf(stderr, "Size of sending struct: %d\n", (int)sizeof(HKData));
+	fprintf(stderr, "Size of gps_data: %d\n", (int) sizeof(_gps_data));
+	fprintf(stderr, "Size of motion_data: %d\n", (int) sizeof(_motion_sensors));
+	fprintf(stderr, "Size of ambient_data: %d\n", (int) sizeof(_ambient_sensors));
 
 	_gps_data gps_data;
 	_ambient_sensors amb_sens;
 	_motion_sensors motion_sens;
-
+	sleep(1);
 	/* initialize sensors, beacons, sockets... */
 	init_beacon();
 	_init_beacon = 1;
@@ -386,15 +386,17 @@ main (void)
 		gettimeofday(&t2, NULL);		
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
 
-    	printf("Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
-	    printf("Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
+		fprintf(stderr, "Elapsed Time: %d\n", elapsedTime);
 
-	    printf( "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
-	    printf( "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
-	    printf( "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
+    		fprintf(stderr, "Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
+	    	fprintf(stderr, "Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
 
-	    printf("In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
-		printf("In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
+	    	fprintf(stderr,  "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
+	    	fprintf(stderr,  "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
+		fprintf(stderr,  "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
+
+	    	fprintf(stderr, "In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
+		fprintf(stderr, "In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
 
 	 	usleep(5 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */

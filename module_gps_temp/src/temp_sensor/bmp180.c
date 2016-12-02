@@ -111,7 +111,7 @@
 /*
  * Average sea-level pressure in hPa
  */
-#define BMP180_SEA_LEVEL 1013.25
+#define BMP180_SEA_LEVEL 1015.0
 
 
 /*
