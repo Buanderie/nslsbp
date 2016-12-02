@@ -370,18 +370,22 @@ main (void)
 
 		if (gps_read(&gps_data, gps_fd) != 0){
 			_init_gps = 0;
+			fprintf(stderr, "GPS Failed\n");
 		}
 
 		if (imu_read(&motion_sens) != 0){
 			_init_imu = 0;
+			fprintf(stderr, "IMU Failed\n");
 		}
 
 		if (temp_read(&amb_sens) != 0){
 			_init_temp = 0;
+			fprintf(stderr, "Temp Failed\n");
 		}
 
 		if (beacon_write(&gps_data, &motion_sens, &amb_sens) != 0){
 			_init_beacon = 0;
+			fprintf(stderr, "Beacon failed\n");
 		}
 		gettimeofday(&t2, NULL);		
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
