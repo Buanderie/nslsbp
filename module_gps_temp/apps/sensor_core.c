@@ -383,8 +383,19 @@ main (void)
 		if (beacon_write(&gps_data, &motion_sens, &amb_sens) != 0){
 			_init_beacon = 0;
 		}
-		gettimeofday(&t2, NULL);
+		gettimeofday(&t2, NULL);		
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
+
+    	printf("Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
+	    printf("Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
+
+	    printf( "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
+	    printf( "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
+	    printf( "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
+
+	    printf("In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
+		printf("In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
+
 	 	usleep(5 * 1000 * 1000 - elapsedTime);
 		/* the following must be called */
 	}

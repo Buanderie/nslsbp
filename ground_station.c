@@ -485,6 +485,7 @@ void rotors_home(int fd)
     /* this indicates max length and ret length */
     int len = 5;
     buf[0] = 'H';
+    buf[1] = '\n';
     printfd("Setting rotors home...\n");
     uart_write(fd, buf, 2);
     /* Recv the yack/nack */
