@@ -38,7 +38,8 @@
 #define DEG2RAD(x)      (x * PI / 180.0)
 #define RAD2DEG(x)      (x * 180.0 / PI)
 
-#define UPC_WEB_SERVER      "http://www.upc.edu"
+#define UPC_FILE_NAME       "upc_iridium_data.csv"
+#define UPC_WEB_SERVER      "https://dev.coderagora.com/iridium/iridium-data.csv"
 #define UPC_GET_DUTY_CYCLE  30
 
 #define KEY_MENU_UP         '8'

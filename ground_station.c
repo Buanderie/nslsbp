@@ -50,6 +50,7 @@ int main(int argc, char ** argv)
     UPCData upc_hk;
     double delta_lat, delta_lng, delta_alt, dist, payload_lat, payload_lng, payload_alt;
     double aux, arc, x, y;
+    char * strtod_ptr;
 
     if(argc < 5) {
         printfe("Wrong number of arguments. Local (GS) device, latitude, longitude and altitude are required\n");
@@ -223,8 +224,18 @@ int main(int argc, char ** argv)
                  * distances. Implementation is extracted from the following resource:
                  * ** http://www.movable-type.co.uk/scripts/latlong.html
                  */
-                payload_lat = DEG2RAD(strtof(upc_hk.lat, NULL));
-                payload_lng = DEG2RAD(strtof(upc_hk.lng, NULL));
+                payload_lat = DEG2RAD(strtof(upc_hk.lat, &strtod_ptr));
+                if (*strtod_ptr == 'N'){
+                    payload_lat = payload_lat;
+                }else if (*strtod_ptr == 'S'){
+                    payload_lat = -1.0 * payload_lat;
+                }
+                payload_lng = DEG2RAD(strtof(upc_hk.lng, &strtod_ptr));
+                if (*strtod_ptr == 'E'){
+                    payload_lng = payload_lng;
+                }else if (*strtod_ptr == 'W'){
+                    payload_lng = -1.0 * payload_lng;
+                }                
                 payload_alt = strtof(upc_hk.alt, NULL);
                 delta_lat = payload_lat - gs_lat;
                 delta_lng = payload_lng - gs_lng;
@@ -293,40 +304,44 @@ void * dbupc_control(void * arg)
     int i;
     int comma_op;
     char line[1035];
+    char wget[1035];
     int matches = 14;
     bool have_data = false;
     UPCData data_aux;
     UPCData data;
+
     while(!gs_exit){
         /* Open the command for reading. */
-        fp = fopen("test.csv", "r");
-        if (fp == NULL){
-            printfe("[DBUPC Control] Error openning CSV file\n");
-            exit(1);
-        }
-        /* Read the output a line at a time - output it. */
-        have_data = false;
-        while (fgets(line, sizeof(line)-1, fp) != NULL) {
-            comma_op = comma_parsing(line, sizeof(line), matches, (void *) &data_aux, 26);
-            if (comma_op == matches){
-                memcpy(&data, &data_aux, sizeof(UPCData));
-                have_data = true;
-                /* save this */
-            }else{
-                /* in case is not equal, break the while and return the last data as definitive */
-                continue;
+        sprintf(wget, "wget -q -O - %s | tail -n5 > %s", UPC_WEB_SERVER, UPC_FILE_NAME);
+        system(wget); 
+        fp = fopen(UPC_FILE_NAME, "r");
+        if (fp != NULL){
+            /* Read the output a line at a time - output it. */
+            have_data = false;
+            while (fgets(line, sizeof(line)-1, fp) != NULL) {
+                comma_op = comma_parsing(line, sizeof(line), matches, (void *) &data_aux, 26);
+                if (comma_op == matches){
+                    memcpy(&data, &data_aux, sizeof(UPCData));
+                    have_data = true;
+                    /* save this */
+                }else{
+                    /* in case is not equal, break the while and return the last data as definitive */
+                    continue;
+                }
             }
+            /* close */
+            fclose(fp);
+            /* now it is safe to ask for a mutex and copy the values to the global variable */
+            if (have_data == true){
+                /* ask for mutex and update the global var */
+                printfd("[DBUPC Control] Data from UPCDB has been updated\n");
+                pthread_mutex_lock(&dbupc_mutex);
+                memcpy(&guided_pos, &data, sizeof(UPCData));
+                pthread_mutex_unlock(&dbupc_mutex);
+            }
+        }else{
+            printfe("[DBUPC Control] Error openning CSV file\n");
         }
-        /* close */
-        fclose(fp);
-        /* now it is safe to ask for a mutex and copy the values to the global variable */
-        if (have_data == true){
-            /* ask for mutex and update the global var */
-            pthread_mutex_lock(&dbupc_mutex);
-            memcpy(&guided_pos, &data, sizeof(UPCData));
-            pthread_mutex_unlock(&dbupc_mutex);
-        }
-        /* system("wget -O - UPC_WEB_SERVER | tail -n2"); */
         for (i = 0; i < UPC_GET_DUTY_CYCLE; i++){
             if (gs_exit) break;
             usleep(1000000);

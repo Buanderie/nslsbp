@@ -347,3 +347,8 @@ int BeaconWrite(const void * buff, int size)
         return 0;
     }
 }
+
+void BeaconClose()
+{
+    close(spifd);
+}
