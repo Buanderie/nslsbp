@@ -316,9 +316,10 @@ void* rx(void* parameter)
                 if(check_dbg_data(&hkd)) {
                     if(dbman_save_hk_data(&hkd) == 0) {
                         if(show_beacon_data) {
-                            gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
-                            strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-                            printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                            if((gps_datetime = localtime((time_t *)&(hkd.gps.time_gps))) != NULL) {
+                                strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                                printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                            }
                         }
                     } else {
                         printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
@@ -497,9 +498,10 @@ void* rx(void* parameter)
         if(check_dbg_data(&hkd)) {
             if(dbman_save_hk_data(&hkd) == 0) {
                 if(show_beacon_data) {
-                    gps_datetime = localtime((time_t *)&(hkd.gps.time_gps));
-                    strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
-                    printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                    if((gps_datetime = localtime((time_t *)&(hkd.gps.time_gps))) != NULL) {
+                        strftime(datetime_str, 50, "%Y %b %d -- %T", gps_datetime);
+                        printfd("[Debug data       ] Time (GPS): %s; Position: [%.4f   %.4f]\n", datetime_str, hkd.gps.lat, hkd.gps.lng);
+                    }
                 }
             } else {
                 printfe("[Debug data       ] An error occurred saving GPS and Temperature debug data to the DB\n");
