@@ -3,30 +3,40 @@
 <head>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="bbs_styles.css">
-    <script src="http://code.jquery.com/jquery-1.11.0.js"></script>
+    <link rel="stylesheet" type="text/css" href="nslsbp_styles.css">
+    <script src="jquery-1.11.0.min.js"></script>
     <script src="gps.js"></script>
 </head>
 <body>
-    <div id="last_update_time">Updated <span class="param_value" id="param_update">? seconds</span> ago</div>
+    <div style="width: 90px; height: 90px; overflow: hidden; margin: 10px auto;">
+        <img src="nslsbp_logos_1.png" style="height: 200px; margin-left: -130px; margin-top: -17px;">
+    </div>
+    <div style="width: 210px; overflow: hidden; margin: 0 auto;">
+        <img src="nslsbp_logos_1.png" style="height: 150px; margin-left: -16px; margin-top: -106px;">
+    </div>
     <ul>
-        <li><span class="param_name">Reception time</span> <span class="param_value" id="param_rx_time">···</span></li>
+        <li><span class="param_name">SBC time</span> <span class="param_value" id="param_sbc_time">···</span></li>
         <li><span class="param_name">GPS time</span> <span class="param_value" id="param_gps_time">···</span></li>
         <li><span class="param_name">Latitude</span> <span class="param_value" id="param_lat">···</span><span class="param_unit"> º</span></li>
         <li><span class="param_name">Longitude</span> <span class="param_value" id="param_lng">···</span><span class="param_unit"> º</span></li>
-        <li><span class="param_name">Velocity</span> <span class="param_value" id="param_vel">···</span><span class="param_unit"> km/h</span></li>
+        <li><span class="param_name">Velocity</span> <span class="param_value" id="param_gspeed">···</span><span class="param_unit"> mm/s</span></li>
+        <li><span class="param_name">Sea altitude</span> <span class="param_value" id="param_sea_alt">···</span><span class="param_unit"> km</span></li>
+        <li><span class="param_name">Geoid altitude</span> <span class="param_value" id="param_geo_alt">···</span><span class="param_unit"> km</span></li>
     </ul>
     <ul>
-        <li><span class="param_name">Temperature</span> <span class="param_value" id="param_temp">···</span><span class="param_unit"> ºC</span></li>
+        <li><span class="param_name">Accelerometer</span> <span class="param_value" id="param_acc">···</span><span class="param_unit"> g</span></li>
+        <li><span class="param_name">Gyroscope</span> <span class="param_value" id="param_gyro">···</span><span class="param_unit"> º/s</span></li>
+        <li><span class="param_name">Magnetometer</span> <span class="param_value" id="param_mag">···</span><span class="param_unit"> μT</span></li>
+    </ul>
+    <ul>
         <li><span class="param_name">CPU temperature</span> <span class="param_value" id="param_cpu_temp">···</span><span class="param_unit"> ºC</span></li>
         <li><span class="param_name">GPU temperature</span> <span class="param_value" id="param_gpu_temp">···</span><span class="param_unit"> ºC</span></li>
+        <li><span class="param_name">Inside temperature</span> <span class="param_value" id="param_in_temp">···</span><span class="param_unit"> ºC</span></li>
+        <li><span class="param_name">Outside temperature</span> <span class="param_value" id="param_out_temp">···</span><span class="param_unit"> ºC</span></li>
     </ul>
     <ul>
-        <li><span class="param_name">Sea altitude</span> <span class="param_value" id="param_sea">···</span><span class="param_unit"> km</span></li>
-        <li><span class="param_name">Geoid altitude</span> <span class="param_value" id="param_geo">···</span><span class="param_unit"> km</span></li>
-        <li><span class="param_name">Course</span> <span class="param_value" id="param_course">···</span></li>
+        <li><span class="param_name">Inside pressure</span> <span class="param_value" id="param_in_pressure">···</span><span class="param_unit"> hPa</span></li>
+        <li><span class="param_name">Outside pressure</span> <span class="param_value" id="param_out_pressure">···</span><span class="param_unit"> hPa</span></li>
     </ul>
-    <img src="map_logos_1.png" style="margin-top: 50px; padding: 10px 0px 10px 0px;" width="100%">
-    <img src="map_logos_2.png" style="padding: 10px 0px 10px 0px;" width="100%">
 </body>
 </html>

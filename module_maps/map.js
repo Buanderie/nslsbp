@@ -1,7 +1,7 @@
 /* Scripts used in map.html */
 var cmplt_path = new Array();
 var time_line  = new Array();
-var gps_extra  = new Array();
+var hk_data    = new Array();
 // var cmplt_path = [
 //             {lat: 37.772, lng: -122.214},
 //             {lat: 21.291, lng: -157.821},
@@ -16,7 +16,7 @@ var map_marker;
 /* On document ready actions: ------------------------------------------------------------------ */
 $(document).ready(function() {
     //initMap();
-    console.log("BBS map ready.");
+    console.log("NSLSBP map ready.");
 });
 
 function initMap() {
@@ -58,22 +58,68 @@ function redraw() {
     }
 }
 
+const IDX_ROW_ID        = 0;
+const IDX_TIME_SBC      = 1;
+const IDX_TIME_GPS      = 2;
+const IDX_LAT           = 3;
+const IDX_LNG           = 4;
+const IDX_GSPEED        = 5;
+const IDX_SEA_ALT       = 6;
+const IDX_GEO_ALT       = 7;
+const IDX_ACC_X         = 8;
+const IDX_ACC_Y         = 9;
+const IDX_ACC_Z         = 10;
+const IDX_GYRO_X        = 11;
+const IDX_GYRO_Y        = 12;
+const IDX_GYRO_Z        = 13;
+const IDX_MAG_X         = 14;
+const IDX_MAG_Y         = 15;
+const IDX_MAG_Z         = 16;
+const IDX_CPU_TEMP      = 17;
+const IDX_GPU_TEMP      = 18;
+const IDX_IN_TEMP       = 19;
+const IDX_IN_PRESSURE   = 20;
+const IDX_OUT_TEMP      = 21;
+const IDX_OUT_PRESSURE  = 22;
+
 function download_data() {
     $.ajax({
-        url: "db_download.php?date="+(time_line.length<1 ? 0 : time_line[time_line.length-1].gps),
+        url: "db_download.php?date=" + (time_line.length < 1 ? 0 : time_line[time_line.length - 1].gps),
         dataType: "text",
         success: function(data) {
             var new_data = $.parseJSON(data);
-            new_data.forEach(function(gps) {
-                cmplt_path.push({lat: parseFloat(gps[3]), lng: parseFloat(gps[4])});
-                time_line.push({rx: parseFloat(gps[1]), gps: parseFloat(gps[2]),});
-                gps_extra.push({kph: parseFloat(gps[5]), sea: parseFloat(gps[6]),
-                                geo: parseFloat(gps[7]), course: parseFloat(gps[8]),
-                                temp: parseFloat(gps[9]), cpu_temp: parseFloat(gps[10]),
-                                gpu_temp: parseFloat(gps[11])});
+            new_data.forEach(function(query_data) {
+                cmplt_path.push({
+                    lat: parseFloat(query_data[IDX_LAT]),
+                    lng: parseFloat(query_data[IDX_LNG])
+                });
+                time_line.push({
+                    time_sbc: parseFloat(query_data[IDX_TIME_SBC]),
+                    time_gps: parseFloat(query_data[IDX_TIME_GPS])
+                });
+                hk_data.push({
+                    gspeed: parseFloat(query_data[IDX_GSPEED]),
+                    sea_alt: parseFloat(query_data[IDX_SEA_ALT]),
+                    geo_alt: parseFloat(query_data[IDX_GEO_ALT]),
+                    acc_x: parseFloat(query_data[IDX_ACC_X]),
+                    acc_y: parseFloat(query_data[IDX_ACC_Y]),
+                    acc_z: parseFloat(query_data[IDX_ACC_Z]),
+                    gyro_x: parseFloat(query_data[IDX_GYRO_X]),
+                    gyro_y: parseFloat(query_data[IDX_GYRO_Y]),
+                    gyro_z: parseFloat(query_data[IDX_GYRO_Z]),
+                    mag_x: parseFloat(query_data[IDX_MAG_X]),
+                    mag_y: parseFloat(query_data[IDX_MAG_Y]),
+                    mag_z: parseFloat(query_data[IDX_MAG_Z]),
+                    cpu_temp: parseFloat(query_data[IDX_CPU_TEMP]),
+                    gpu_temp: parseFloat(query_data[IDX_GPU_TEMP]),
+                    in_temp: parseFloat(query_data[IDX_IN_TEMP]),
+                    in_pressure: parseFloat(query_data[IDX_IN_PRESSURE]),
+                    out_temp: parseFloat(query_data[IDX_OUT_TEMP]),
+                    out_pressure: parseFloat(query_data[IDX_OUT_PRESSURE])
+                });
             });
-            if(new_data.length > 0){redraw();}
+            if(new_data.length > 0){ redraw(); }
         }
-            
+
     });
 }
