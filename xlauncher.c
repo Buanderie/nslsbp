@@ -45,8 +45,8 @@ restart:
         close(pipe0[WRITE]);        /* stdout is now redirected to Pipe 0 (W). */
 
         // send_beacon_msg(SYSTEM, "Launching raspivid process");
-        execlp("raspivid", "raspivid", "-t", "0", "-w", "1280", "-h", "720",
-            "-b", "850000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
+        execlp("raspivid", "raspivid", "-t", "0", "-w", "854", "-h", "480",
+            "-b", "450000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
         // send_beacon_msg(SYSTEM, "Raspivid failed to execute");
 
     } else if(pid_raspivid > 0) {
