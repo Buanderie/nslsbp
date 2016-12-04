@@ -45,8 +45,8 @@ restart:
         close(pipe0[WRITE]);        /* stdout is now redirected to Pipe 0 (W). */
 
         // send_beacon_msg(SYSTEM, "Launching raspivid process");
-        execlp("raspivid", "raspivid", "-t", "0", "--rotation", "180", "-w", "854", "-h", "480",
-            "-b", "750000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
+        execlp("raspivid", "raspivid", "-t", "0", "-w", "1280", "-h", "720",
+            "-b", "850000", "-ih", "-fps", "25", "-n", "-pf", "high", "-o", "-", (char *)NULL);
         // send_beacon_msg(SYSTEM, "Raspivid failed to execute");
 
     } else if(pid_raspivid > 0) {
@@ -141,6 +141,7 @@ restart:
                 if(vitow_error_count < 5) {
                     // send_beacon_msg(SYSTEM, "VITOW has failed %d times. Trying to reset processes without system reboot", vitow_error_count);
                     printfw("VITOW has failed %d times. Trying to reset processes without system reboot\n", vitow_error_count);
+                    sleep(3);
                     goto restart;
                 } else {
                     // send_beacon_msg(SYSTEM, "System will now reboot");
@@ -164,6 +165,7 @@ restart:
         // send_beacon_msg(SYSTEM, "System will now reboot");
         printfe("Exiting now\n");
     }
+    sleep(3);
 
     return 1;
 }

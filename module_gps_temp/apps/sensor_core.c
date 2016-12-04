@@ -18,16 +18,16 @@
 #include <sensors.h>
 
 //#define GPS_OFF
-//#define IMU_OFF
+#define IMU_OFF
 //#define TEM_OFF
-//#define BEACON_OFF
+#define BEACON_OFF
 
 int
 init_gps()
 {
 	#ifndef GPS_OFF
 	unsigned char recv_message[256];
-	int uart_fd = OpenGPSIface(1000);
+	int uart_fd = OpenGPSIface(2000);
 	if (uart_fd == -1){
 	    fprintf(stderr, "No GPS Device\n");
 	    return 0;
@@ -273,7 +273,7 @@ temp_read(_ambient_sensors * amb_sens)
 	amb_sens->out_calc_alt = amb_sens->in_calc_alt;
 
 	mcp9808_close(mcp);
-
+	#endif
     int t_aux = 0;
     FILE * cpufile;
     FILE * gpufile;
@@ -296,20 +296,19 @@ temp_read(_ambient_sensors * amb_sens)
     if(gpufile != NULL) {
         fclose(gpufile);
     }
-	#endif
 	return 0;
 }
 
 int
 beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_sensors * amb_sens)
 {
-	#ifndef BEACON_OFF
 	HKData data;
 	int ret;
 	memcpy(&data.gps, gps_data, sizeof(_gps_data));
 	memcpy(&data.mot, motion_sens, sizeof(_motion_sensors));
 	memcpy(&data.amb, amb_sens, sizeof(_ambient_sensors));
 	dbman_save_hk_data(&data);
+	#ifndef BEACON_OFF
 	ret = BeaconWrite((const void *) &data, sizeof(HKData));
 	return ret;
 	#endif
@@ -347,7 +346,10 @@ main (void)
 	/* END OF INITS */
 	/* hold 1 second before start streaming data */
 	sleep(1);
-
+	memset(&gps_data, 0 , sizeof(_gps_data));
+	memset(&motion_sens, 0, sizeof(_motion_sensors));
+	memset(&amb_sens, 0, sizeof(_ambient_sensors));
+	printf("Starting\n");
 	while(1)
 	{
 		gettimeofday(&t1, NULL);
@@ -389,7 +391,7 @@ main (void)
 		}
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		fprintf(stderr, "Elapsed time reading IMU: %f ms\n", elapsedTime/1000.0);
+//		fprintf(stderr, "Elapsed time reading IMU: %f ms\n", elapsedTime/1000.0);
 		gettimeofday(&t3, NULL);
 		if (temp_read(&amb_sens) != 0){
 			_init_temp = 0;
@@ -397,7 +399,7 @@ main (void)
 		}
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		fprintf(stderr, "Elapsed time reading TEMP: %f ms\n", elapsedTime/1000.0);
+//		fprintf(stderr, "Elapsed time reading TEMP: %f ms\n", elapsedTime/1000.0);
 		gettimeofday(&t3, NULL);
 		if (beacon_write(&gps_data, &motion_sens, &amb_sens) != 0){
 			_init_beacon = 0;
@@ -405,19 +407,19 @@ main (void)
 		}
 		gettimeofday(&t2, NULL);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t3.tv_sec*1000000 + t3.tv_usec);
-		fprintf(stderr, "Elapsed time writing beacon: %f ms\n", elapsedTime/1000.0);
+//		fprintf(stderr, "Elapsed time writing beacon: %f ms\n", elapsedTime/1000.0);
 		elapsedTime = t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec);
 
 		fprintf(stderr, "Elapsed Time: %d\n", elapsedTime);
 
 		fprintf(stderr, "Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
-    	fprintf(stderr, "Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
+    		fprintf(stderr, "Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
 
-    	fprintf(stderr,  "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
-    	fprintf(stderr,  "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
-		fprintf(stderr,  "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
+//    		fprintf(stderr,  "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
+//   		fprintf(stderr,  "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
+//		fprintf(stderr,  "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
 
-    	fprintf(stderr, "In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
+//    		fprintf(stderr, "In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
 		fprintf(stderr, "In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
 
 	 	

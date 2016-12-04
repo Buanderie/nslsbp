@@ -29,7 +29,7 @@
 #define MAX_PKT_LEN     (PKTLEN - 1)        // Maximum packet length (in bytes). The -1 accounts for the length field (datasheet page 38).
 #define RS_PKT_LEN      PKTLEN - 32
 
-#define GPIO_COMMS_PAC  7       // WIRING PI PIN REF. Pin 7 of the raspy header!!
+#define GPIO_COMMS_PAC  4       // WIRING PI PIN REF. Pin 7 of the raspy header!!
 
 // Strobe commands
 #define STROBE_SRES     0x30    // Reset chip.
