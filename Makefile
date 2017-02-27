@@ -1,7 +1,7 @@
 
 OBJDIR := obj
 OBJSXL := $(addprefix $(OBJDIR)/,xlauncher.o)
-OBJSGS := $(addprefix $(OBJDIR)/,ground_station.o)
+#OBJSGS := $(addprefix $(OBJDIR)/,ground_station.o)
 
 INCLUDES  = -I./libraries -I./module_gps_temp/include
 LIBRARIES = -L./libraries
@@ -10,7 +10,7 @@ CFLAGS  = -Wall -DXLAUNCHER_DEBUG -DGROUND_STATION_DEBUG -DFAKE_BEACON_MSG $(INC
 LDFLAGS = -ldbman -pthread -lncurses -lm $(LIBRARIES)
 
 
-all: xlauncher ground_station
+all: xlauncher
 
 $(OBJDIR)/%.o : %.c
 	@echo -n -e '---------: COMPILING $< -> $@ : '

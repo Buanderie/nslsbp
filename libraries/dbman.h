@@ -24,10 +24,13 @@
 #include "dbman_credentials.h"  /* Defines DB_USR and DB_PASSWD. */
 #include "sensors.h"            /* Defines Housekeeping structures. */
 
+#include "nslsbp.h"
+
 /*** PARAMETERS ***********************************************************************************/
 #define DB_HOST         "localhost"
 #define DB_DBNAME       "nslsbp"
 #define DB_TABLE_HK     "hk_data"
+#define DB_TABLE_XBEE   "xbee_data"
 
 
 /*** GLOBAL CONSTANTS: ****************************************************************************/
@@ -35,15 +38,11 @@
 /*** GLOBAL VARIABLES: ****************************************************************************/
 
 /*** TYPEDEFS *************************************************************************************/
-typedef struct HKData {
-    _gps_data gps;
-    _motion_sensors mot;
-    _ambient_sensors amb;
-} HKData;
 
 /*** FUNCTION HEADERS *****************************************************************************/
-int dbman_get_hk_data(HKData * data);
-int dbman_get_last_position(double *lat, double *lon, double *alt);
-int dbman_save_hk_data(HKData * data);
+int dbman_get_all_data(balloon_data_t * data);
+int dbman_get_last_position(double *lat, double *lon, double *alt); /* unused function */
+int dbman_save_hk_data(hk_data_t * data);
+int dbman_save_xbee_data(xbee_hk_data_t * data);
 
 #endif
