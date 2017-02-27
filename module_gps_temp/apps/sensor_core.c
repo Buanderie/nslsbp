@@ -413,13 +413,13 @@ main (void)
 		fprintf(stderr, "Elapsed Time: %d\n", elapsedTime);
 
 		fprintf(stderr, "Times: Local.%d GPS.%d\n", gps_data.time_local, gps_data.time_gps);
-    		fprintf(stderr, "Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
+		fprintf(stderr, "Lat: %f, Long: %f, GSpeed: %f, SeaAlt: %f, GeoAlt: %f\n", gps_data.lat, gps_data.lng, gps_data.gspeed, gps_data.sea_alt, gps_data.geo_alt);
 
-//    		fprintf(stderr,  "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
-//   		fprintf(stderr,  "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
+//    	fprintf(stderr,  "Ax: %-8.2f Ay: %-8.2f Az: %-8.2f\n", motion_sens.acc_x, motion_sens.acc_y, motion_sens.acc_z);
+//   	fprintf(stderr,  "Gx: %-8.2f Gy: %-8.2f Gz: %-8.2f\n", motion_sens.gyro_x, motion_sens.gyro_y, motion_sens.gyro_z);
 //		fprintf(stderr,  "Mx: %-8.2f My: %-8.2f Mz: %-8.2f\n", motion_sens.mag_x, motion_sens.mag_y, motion_sens.mag_z);
 
-//    		fprintf(stderr, "In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
+//    	fprintf(stderr, "In Temp: %f Press: %f, Alt: %f. OUT: %f\n", amb_sens.in_temp, amb_sens.in_pressure, amb_sens.in_calc_alt, amb_sens.out_temp);   
 		fprintf(stderr, "In Temp CPU: %f Temp GPU %f\n", amb_sens.cpu_temp, amb_sens.gpu_temp);
 
 	 	
