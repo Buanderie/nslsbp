@@ -114,13 +114,18 @@ void begin(const char * device, int baud, unsigned int timeout_ms, xbee_serial_p
 int available(xbee_serial_parms_t * input_handler)
 {
 	int bytes_avail;
-	ioctl(input_handler->fd, FIONREAD, &bytes_avail);
+	if (ioctl(input_handler->fd, FIONREAD, &bytes_avail) == -1){
+    printf("Error while checking available bytes on UART\n");
+    input_handler->ret = -1;
+    return -1;
+  }
 	return bytes_avail;
 }
 
 int read_port(xbee_serial_parms_t * input_handler)
 {
-	return read(input_handler->fd, input_handler->buffer, 1);
+  input_handler->ret = read(input_handler->fd, input_handler->buffer, 1);
+	return input_handler->ret;
 }
 
 void clear (xbee_serial_parms_t * input_handler)
@@ -129,6 +134,10 @@ void clear (xbee_serial_parms_t * input_handler)
 	{
 		while(read_port(input_handler) > 0);
 	}
+  if (input_handler->ret == -1){
+    printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
+
+  }
 }
 
 int readBytesUntil(xbee_serial_parms_t * input_handler, char to_find, char * buffer, int max_size)
@@ -147,7 +156,15 @@ int readBytesUntil(xbee_serial_parms_t * input_handler, char to_find, char * buf
 					return max_size;
 			}
 		}
-	}
+    if (input_handler->ret == -1){
+    printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
+    }
+	}else{
+      if (input_handler->ret == -1){
+    printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
+
+      }
+  }
 	return 0;
 }
 
@@ -183,6 +200,9 @@ bool newMessage(xbee_serial_parms_t * input_handler, char * buff, int max_size)
     }
     return true;  
   }else{
+      if (input_handler->ret == -1){
+        printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
+      }    
   	return false;
   }
 }
@@ -397,12 +417,17 @@ int work (char * dev_name)
       sendPing(&xbee);
     }else{
       /* otherwise, sleep */
+      /* If no message received in timeout_ms, just try to push to DB all the structure */
+        if (has_thermal || has_imu || has_gps || has_tc || has_vc){
+          printf("Saving to DB\n");
+          dbman_save_xbee_data(&hk);
+          has_thermal = false;
+          has_vc = false;
+          has_imu = false;
+          has_gps = false;
+          has_tc = false;
+        }
       xbee_delay_ms(100);
-      has_thermal = false;
-      has_vc = false;
-      has_imu = false;
-      has_gps = false;
-      has_tc = false;
     }
 	}
   return 0;

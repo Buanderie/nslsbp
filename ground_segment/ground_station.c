@@ -160,7 +160,16 @@ int main(int argc, char ** argv)
 
                     printfd("[GPS data        ] lat = %.7lf, lng = %.7lf, alt = %.2lf\n",
                         hk.xbee.gps.lat, hk.xbee.gps.lng, hk.xbee.gps.alt);
-
+                    if(hk.hk.amb.gpu_temp >= 60.0 || hk.hk.amb.cpu_temp >= 60.0) {
+                        printfe("[Temperature data] CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.hk.amb.cpu_temp, hk.hk.amb.gpu_temp);
+                    } else {
+                        printfd("[Temperature data] CPU temp: %.1lf ºC, GPU temp: %.1lf ºC\n", hk.hk.amb.cpu_temp, hk.hk.amb.gpu_temp);
+                    }
+                    if(hk.xbee.therm.gen_t >= 60.0 || hk.xbee.therm.pay_t >= 60.0) {
+                        printfe("[Temperature data] OUT temp: %.1lf ºC, BAT temp: %.1lf ºC, GEN temp: %.1lf ºC, PAY temp: %.1lf ºC\n", hk.xbee.therm.out_t, hk.xbee.therm.bat_t, hk.xbee.therm.gen_t, hk.xbee.therm.pay_t);
+                    } else {
+                        printfd("[Temperature data] OUT temp: %.1lf ºC, BAT temp: %.1lf ºC, GEN temp: %.1lf ºC, PAY temp: %.1lf ºC\n", hk.xbee.therm.out_t, hk.xbee.therm.bat_t, hk.xbee.therm.gen_t, hk.xbee.therm.pay_t);
+                    }
                     /* Calculate new azimuth and elevation using Haversine formulas to calculate great-circle
                      * distances. Implementation is extracted from the following resource:
                      * ** http://www.movable-type.co.uk/scripts/latlong.html
