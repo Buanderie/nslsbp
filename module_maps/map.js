@@ -19,8 +19,8 @@ var interval_tables, interval_map;
 $(document).ready(function() {
     //initMap();
     console.log("NSLSBP map ready.");
-    update_tables();
-    interval_tables = window.setInterval(download_data, 1000);
+    //update_tables();
+    interval_tables = window.setInterval(update_tables, 1000);
 });
 
 function initMap() {
