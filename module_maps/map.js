@@ -102,6 +102,7 @@ const IDX_XBEE_PING_RECEIVED = 16;
 
 function download_data() {
     var path = "db_download.php?date_gps=" + (gps_time_line.length < 1 ? 0 : gps_time_line[gps_time_line.length - 1].time_gps) + "&date_xbee=" + (xbee_time_line.length < 1 ? 0 : xbee_time_line[xbee_time_line.length - 1]);
+    console.log(path);
     $.ajax({
         url: path,
         dataType: "text",
