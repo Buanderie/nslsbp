@@ -157,12 +157,11 @@ int readBytesUntil(xbee_serial_parms_t * input_handler, char to_find, char * buf
 			}
 		}
     if (input_handler->ret == -1){
-    printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
+      printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
     }
 	}else{
       if (input_handler->ret == -1){
-    printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
-
+        printf("Error reading from UART at %s:%d\n", __FUNCTION__, __LINE__);
       }
   }
 	return 0;
@@ -230,7 +229,6 @@ void upperCaseNoSpaces(char * buff){
 void processSubmessages(telemetry_modules_t system, char * str){
     int scan_matches;
     char * tok_ptr;
-    printf("Message: %s\n", str);
     if (str == NULL){
       printf("Input message is NULL\n");
       return;
@@ -240,7 +238,7 @@ void processSubmessages(telemetry_modules_t system, char * str){
         scan_matches = sscanf(str, "%u,%u", &hk.tc.cmd, &hk.tc.ping);
         if (scan_matches == 2){
           has_tc = true;
-          //printf("TC Message ->> Commands: %u, Pings: %u\n", hk.tc.cmd, hk.tc.ping);
+          printf("TC Message ->> Commands: %u, Pings: %u\n", hk.tc.cmd, hk.tc.ping);
         }
       break;
       case GPS:
@@ -251,7 +249,7 @@ void processSubmessages(telemetry_modules_t system, char * str){
         scan_matches = sscanf(str, "%u,%f,%f,%f", &hk.gps.time, &hk.gps.lat, &hk.gps.lng, &hk.gps.alt);
         if (scan_matches == 4){
           
-          //printf("GPS Message ->> Time is %u, Pos: %f, %f, %f\n", hk.gps.time, hk.gps.lat, hk.gps.lng, hk.gps.alt);
+          printf("GPS Message ->> Time is %u, Pos: %f, %f, %f\n", hk.gps.time, hk.gps.lat, hk.gps.lng, hk.gps.alt);
         }
       break;
       case IMU:
@@ -262,7 +260,7 @@ void processSubmessages(telemetry_modules_t system, char * str){
         scan_matches = sscanf(str, "R/%f,P/%f,Y/%f", &hk.imu.roll, &hk.imu.pitch, &hk.imu.yaw);
         if (scan_matches == 3){
 
-          //printf("IMU Message ->> Roll: %f Pitch: %f Yaw: %f\n", hk.imu.roll, hk.imu.pitch, hk.imu.yaw);
+          printf("IMU Message ->> Roll: %f Pitch: %f Yaw: %f\n", hk.imu.roll, hk.imu.pitch, hk.imu.yaw);
         }
       break;
       case VCSENS:
@@ -281,25 +279,25 @@ void processSubmessages(telemetry_modules_t system, char * str){
           while(tok_ptr != NULL){
             if (strncmp(tok_ptr, "VSYS/", strlen("VSYS/")) == 0){
               scan_matches = sscanf(tok_ptr, "VSYS/%fV,%fA,%fW", &hk.vc.vsys_v, &hk.vc.vsys_i, &hk.vc.vsys_w);
-              //printf("VSYS Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.vsys_v, hk.vc.vsys_i, hk.vc.vsys_w);
+              printf("VSYS Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.vsys_v, hk.vc.vsys_i, hk.vc.vsys_w);
             }else if (strncmp(tok_ptr, "V3/", strlen("V3/")) == 0){
               scan_matches = sscanf(tok_ptr, "V3/%fV,%fA,%fW", &hk.vc.v3_v, &hk.vc.v3_i, &hk.vc.v3_w);
               if (scan_matches == 3){
                 hk.vc.enabled_3 = 1;
               }
-              //printf("V3 Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.v3_v, hk.vc.v3_i, hk.vc.v3_w);
+              printf("V3 Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.v3_v, hk.vc.v3_i, hk.vc.v3_w);
             }else if (strncmp(tok_ptr, "V5/", strlen("V5/")) == 0){
               scan_matches = sscanf(tok_ptr, "V5/%fV,%fA,%fW", &hk.vc.v5_v, &hk.vc.v5_i, &hk.vc.v5_w);
               if (scan_matches == 3){
                 hk.vc.enabled_5 = 1;
               }              
-              //printf("V5 Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.v5_v, hk.vc.v5_i, hk.vc.v5_w);
+              printf("V5 Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.v5_v, hk.vc.v5_i, hk.vc.v5_w);
             }else if (strncmp(tok_ptr, "V12/", strlen("V12/")) == 0){
               scan_matches = sscanf(tok_ptr, "V12/%fV,%fA,%fW", &hk.vc.v12_v, &hk.vc.v12_i, &hk.vc.v12_w);
               if (scan_matches == 3){
                 hk.vc.enabled_12 = 1;
               }              
-              //printf("V12 Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.v12_v, hk.vc.v12_i, hk.vc.v12_w);            
+              printf("V12 Message ->> %f Volts, %f Amps, %f Watts\n", hk.vc.v12_v, hk.vc.v12_i, hk.vc.v12_w);            
             }
             tok_ptr = strtok(NULL, ";");
           }
@@ -314,16 +312,16 @@ void processSubmessages(telemetry_modules_t system, char * str){
               hk.therm.auto_manual_flag = 0;
             }else if (strncmp(tok_ptr, "OUT/", strlen("OUT/")) == 0){
               scan_matches = sscanf(tok_ptr, "OUT/%f,0", &hk.therm.out_t);
-              //printf("OUT Temp Message ->> %f C, Heater: 0\n", hk.therm.out_t);
+              printf("OUT Temp Message ->> %f C, Heater: 0\n", hk.therm.out_t);
             }else if (strncmp(tok_ptr, "PAY/", strlen("PAY/")) == 0){
               scan_matches = sscanf(tok_ptr, "PAY/%f,%u", &hk.therm.pay_t, (unsigned int *) &hk.therm.pay_enabled);
-              //printf("PAY Temp Message ->> %f C, Heater: %u\n", hk.therm.pay_t, hk.therm.pay_enabled);              
+              printf("PAY Temp Message ->> %f C, Heater: %u\n", hk.therm.pay_t, hk.therm.pay_enabled);              
             }else if (strncmp(tok_ptr, "BAT/", strlen("BAT/")) == 0){
               scan_matches = sscanf(tok_ptr, "BAT/%f,%u", &hk.therm.bat_t, (unsigned int *) &hk.therm.bat_enabled);
-              //printf("BAT Temp Message ->> %f C, Heater: %u\n", hk.therm.bat_t, hk.therm.bat_enabled);                
+              printf("BAT Temp Message ->> %f C, Heater: %u\n", hk.therm.bat_t, hk.therm.bat_enabled);                
             }else if (strncmp(tok_ptr, "GEN/", strlen("GEN/")) == 0){
               scan_matches = sscanf(tok_ptr, "GEN/%f,%u", &hk.therm.gen_t, (unsigned int *) &hk.therm.gen_enabled);
-              //printf("GEN Temp Message ->> %f C, Heater: %u\n", hk.therm.gen_t, hk.therm.gen_enabled);                
+              printf("GEN Temp Message ->> %f C, Heater: %u\n", hk.therm.gen_t, hk.therm.gen_enabled);                
             }
             tok_ptr = strtok(NULL, ";");
           }
@@ -366,7 +364,7 @@ bool pingDutyCycle(unsigned int now, int duty){
 
 void sendPing(xbee_serial_parms_t * output_handler){
   strncpy((char *) output_handler->buffer, "SYSTEM,PING", strlen("SYSTEM,PING"));
-  write(output_handler->fd, output_handler->buffer, strlen("SYSTEM,PING"));
+  output_handler->ret = write(output_handler->fd, output_handler->buffer, strlen("SYSTEM,PING"));
 }
 
 int work (char * dev_name)
@@ -394,7 +392,6 @@ int work (char * dev_name)
 			/* This message is 1 line, corresponding to TC, GPS, IMU, etc. */
 			/* Identify it! */
 			/* Read until ':' char */
-      printf("ucns: %s\n", buffer);
 			if (sscanf(buffer, "%[^:] %*[:] %[^\r\n]", arg1, arg2) == 2){
 			/* Copmpare the arg1 and then go into a function for arg2 */
 				//printf("Scanned: %s -> %s\n", arg1, arg2);
@@ -402,7 +399,6 @@ int work (char * dev_name)
         /* strtok to split each ; into 1 single message and add to database or something */
         processSubmessages(parseTelemetryModule(arg1), arg2);
         if (has_thermal && has_imu && has_gps && has_tc && has_vc){
-          printf("Saving to DB\n");
           dbman_save_xbee_data(&hk);
           has_thermal = false;
           has_vc = false;
@@ -415,7 +411,15 @@ int work (char * dev_name)
       /* If no message in the millisecond input, send ping */
 		}else if (pingDutyCycle(time(NULL), 2) ){
       sendPing(&xbee);
+      if (xbee.ret == -1){
+        printf("XBEE has failed\n");
+        exit(0);
+      }
     }else{
+      if (xbee.ret == -1){
+        printf("XBEE has failed\n");
+        exit(0);
+      }
       /* otherwise, sleep */
       /* If no message received in timeout_ms, just try to push to DB all the structure */
         if (has_thermal || has_imu || has_gps || has_tc || has_vc){
