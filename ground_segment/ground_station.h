@@ -72,23 +72,23 @@
 #ifdef GROUND_STATION_DEBUG
     #define printfd(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") %c " \
-            fmt "\r", curr_time_format(), (mode == MODE_AUTO_XBEE || mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
+            fmt "\r", curr_time_format(), (mode == MODE_AUTO_XBEE ? '-' : mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfdg(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_BLUE    "d" DBG_NOCOLOR ") %c " DBG_GREY \
-            fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO_XBEE || mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
+            fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO_XBEE ? '-' : mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfe(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_REDB    "E" DBG_NOCOLOR ") %c " \
-            DBG_REDD fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO_XBEE || mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
+            DBG_REDD fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO_XBEE ? '-' : mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfw(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_YELLOW  "W" DBG_NOCOLOR ") %c " \
-            fmt "\r", curr_time_format(), (mode == MODE_AUTO_XBEE || mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
+            fmt "\r", curr_time_format(), (mode == MODE_AUTO_XBEE ? '-' : mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
     #define printfo(fmt, ...) do { \
             printf("\r[groundst:%s] (" DBG_GREENB  "o" DBG_NOCOLOR ") %c " \
-            DBG_GREEND fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO_XBEE || mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
+            DBG_GREEND fmt DBG_NOCOLOR "\r", curr_time_format(), (mode == MODE_AUTO_XBEE ? '-' : mode == MODE_AUTO_VITOW ? '+' : (mode == MODE_GUIDED) ? '*' : ' '), ## __VA_ARGS__); \
         } while(0)
 #else
     #define printfd(fmt, ...) do { } while (0)
