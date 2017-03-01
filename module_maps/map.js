@@ -3,8 +3,6 @@ var gps_cmplt_path = new Array();
 var xbee_cmplt_path = new Array();
 var gps_time_line  = new Array();
 var xbee_time_line  = new Array();
-var hk_data    = new Array();
-var xbee_data    = new Array();
 // var cmplt_path = [
 //             {lat: 37.772, lng: -122.214},
 //             {lat: 21.291, lng: -157.821},
@@ -15,11 +13,14 @@ var xbee_data    = new Array();
 var lineCoordinatesPath;
 var map;
 var map_marker;
+var interval_tables, interval_map;
 
 /* On document ready actions: ------------------------------------------------------------------ */
 $(document).ready(function() {
     //initMap();
     console.log("NSLSBP map ready.");
+    update_tables();
+    interval_tables = window.setInterval(download_data, 1000);
 });
 
 function initMap() {
@@ -39,7 +40,7 @@ function initMap() {
     map_marker.setMap(map);
     lineCoordinatesPath.setMap(map);
 
-    var interval = window.setInterval(download_data, 1000);
+    interval_map = window.setInterval(download_data, 1000);
 }
 function redraw() {
     // var waypoints = lineCoordinatesPath.getPath();
@@ -101,8 +102,7 @@ const IDX_XBEE_TC_RECEIVED   = 15;
 const IDX_XBEE_PING_RECEIVED = 16;
 
 function download_data() {
-    var path = "db_download.php?date_gps=" + (gps_time_line.length < 1 ? 0 : gps_time_line[gps_time_line.length - 1].time_gps) + "&date_xbee=" + (xbee_time_line.length < 1 ? 0 : xbee_time_line[xbee_time_line.length - 1]);
-    console.log(path);
+    var path = "map_download.php?date_gps=" + (gps_time_line.length < 1 ? 0 : gps_time_line[gps_time_line.length - 1].time_gps) + "&date_xbee=" + (xbee_time_line.length < 1 ? 0 : xbee_time_line[xbee_time_line.length - 1]);
     $.ajax({
         url: path,
         dataType: "text",
@@ -117,13 +117,6 @@ function download_data() {
                     time_sbc: parseFloat(query_data[IDX_GPS_TIME_SBC]),
                     time_gps: parseFloat(query_data[IDX_GPS_TIME_GPS])
                 });
-                hk_data.push({
-                    gspeed: parseFloat(query_data[IDX_GPS_GSPEED]),
-                    sea_alt: parseFloat(query_data[IDX_GPS_SEA_ALT]),
-                    geo_alt: parseFloat(query_data[IDX_GPS_GEO_ALT]),
-                    cpu_temp: parseFloat(query_data[IDX_GPS_CPU_TEMP]),
-                    gpu_temp: parseFloat(query_data[IDX_GPS_GPU_TEMP])
-                });
             });
             new_data.xbee.forEach(function(query_data) {
                 xbee_cmplt_path.push({
@@ -131,25 +124,8 @@ function download_data() {
                     lng: parseFloat(query_data[IDX_XBEE_LNG])
                 });
                 xbee_time_line.push(parseFloat(query_data[IDX_XBEE_TIME_GPS]));
-                xbee_data.push({
-                    alt: parseFloat(query_data[IDX_XBEE_ALT]),
-                    roll: parseFloat(query_data[IDX_XBEE_ROLL]),
-                    pitch: parseFloat(query_data[IDX_XBEE_PITCH]),
-                    yaw: parseFloat(query_data[IDX_XBEE_YAW]),
-                    vsys: parseFloat(query_data[IDX_XBEE_VSYS]),
-                    isys: parseFloat(query_data[IDX_XBEE_ISYS]),
-                    wsys: parseFloat(query_data[IDX_XBEE_WSYS]),
-                    out_temp: parseFloat(query_data[IDX_XBEE_OUT_TEMP]),
-                    gen_temp: parseFloat(query_data[IDX_XBEE_GEN_TEMP]),
-                    pay_temp: parseFloat(query_data[IDX_XBEE_PAY_TEMP]),
-                    bat_temp: parseFloat(query_data[IDX_XBEE_BAT_TEMP]),
-                    tc_received: parseFloat(query_data[IDX_XBEE_TC_RECEIVED]),
-                    ping_received: parseFloat(query_data[IDX_XBEE_PING_RECEIVED])
-                    
-                });
             });
             if(new_data.gps.length > 0 || new_data.xbee.length > 0) {
-                update_tables();
                 redraw();
             }
         }
