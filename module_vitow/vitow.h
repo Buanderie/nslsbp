@@ -40,7 +40,7 @@
 /*** PARAMETERS ***********************************************************************************/
 #define VERBOSITY       2                   /* Verb. level: 2 = full traces with packet dumps.    */
 #define SYMBOL_SIZE     1084                /* Must be multiple of 4.                             */
-#define BUFFER_ELEMS    251                /* Elements in the buffer.                            */
+#define BUFFER_ELEMS    251                 /* Elements in the buffer.                            */
 #define BUFFER_SIZE     (SYMBOL_SIZE * BUFFER_ELEMS)    /* Round-Robin buffers size.              */
 #define SYMBOL_SIZE_32  (SYMBOL_SIZE / 4)   /* Used when pointers to buffer are (int *).          */
 #define OVERHEAD        1.05                /* Protocol overhead.                                 */

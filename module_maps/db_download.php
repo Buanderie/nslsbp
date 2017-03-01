@@ -1,5 +1,7 @@
 <?php
 
+header("Content-Type:application/json");
+
 /* Creating database variable. */
 require("mysql_credentials/config.inc.php");
 $conn = new mysqli(DB_SERVER, DB_USER, DB_PASS, DB_DATABASE);

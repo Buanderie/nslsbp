@@ -85,7 +85,7 @@ function update_tables() {
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_ping_received');
             cell.innerHTML = new_data.xbee.ping_received;
-            
+
         }
 
     });
