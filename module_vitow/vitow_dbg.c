@@ -36,6 +36,19 @@ bool check_dbg_data(hk_data_t * hkd)
         hkd->gps.gspeed       != 0.f    &&
         hkd->gps.sea_alt      != 0.f    &&
         hkd->gps.geo_alt      != 0.f    &&
+        hkd->amb.cpu_temp     != 0.f    &&
+        hkd->amb.gpu_temp     != 0.f    
+    );
+
+    /* 
+    return (
+        hkd->gps.time_local   != 0      &&
+        hkd->gps.time_gps     != 0      &&
+        hkd->gps.lat          != 0.f    &&
+        hkd->gps.lng          != 0.f    &&
+        hkd->gps.gspeed       != 0.f    &&
+        hkd->gps.sea_alt      != 0.f    &&
+        hkd->gps.geo_alt      != 0.f    &&
         hkd->mot.acc_x        != 0.f    &&
         hkd->mot.acc_x        != 0.f    &&
         hkd->mot.acc_y        != 0.f    &&
@@ -55,6 +68,7 @@ bool check_dbg_data(hk_data_t * hkd)
         hkd->amb.out_pressure != 0.f    &&
         hkd->amb.out_calc_alt != 0.f
     );
+    */
 }
 
 /***********************************************************************************************//**
