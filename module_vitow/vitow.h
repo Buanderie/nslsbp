@@ -152,8 +152,8 @@ void* transmittingThread(void* args);
 const char * curr_time_format(void);
 
 /* Functions from vitow_dbg: */
-bool check_dbg_data(HKData * hkd);
-void dump_dbg_data(int dbg_id, HKData * hkd, unsigned int * dbg_param, unsigned int * dbg_value);
-void save_dbg_data(unsigned int dbg_param, unsigned int * dbg_value, HKData * hkd);
+bool check_dbg_data(hk_data_t * hkd);
+void dump_dbg_data(int dbg_id, hk_data_t * hkd, unsigned int * dbg_param, unsigned int * dbg_value);
+void save_dbg_data(unsigned int dbg_param, unsigned int * dbg_value, hk_data_t * hkd);
 
 #endif

@@ -77,7 +77,7 @@ void* transmittingThread(void* args)
     double          time_elapsed;
     double          throughput_abs;
     double          throughput_net;
-    HKData hkd;
+    hk_data_t hkd;
 
     gettimeofday(&time_value, NULL); /* Initializes current time for delay counting purposes. */
     dbman_get_hk_data(&hkd);

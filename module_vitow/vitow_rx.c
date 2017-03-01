@@ -22,7 +22,7 @@ static bool         show_beacon_data = false;   /* Whether to display beacon dat
 
 const of_codec_id_t codec_id = OF_CODEC_LDPC_STAIRCASE_STABLE;  /* Identifier of the codec to use.*/
 
-void print_dbg_data(HKData d)
+void print_dbg_data(hk_data_t d)
 {
     printf("GPS data fetched:\n"
             "  d.gps.time_local    = %u\n"
@@ -119,7 +119,7 @@ void* rx(void* parameter)
     PENUMBRA_RADIOTAP_DATA prd;
     unsigned char * pu8Payload = u8aReceiveBuffer;
     unsigned char * pu8Symbol = u8aSymbol;
-    HKData          hkd;                            /* Housekeeping data. */
+    hk_data_t          hkd;                            /* Housekeeping data. */
     char            datetime_str[50];               /* The GPS time formated as a string. */
     struct tm *     gps_datetime;                   /* A date-time struct to display GP time. */
 

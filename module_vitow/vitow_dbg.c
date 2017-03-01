@@ -21,7 +21,7 @@
 /***********************************************************************************************//**
  * Chack that all the debug data fields have been filled.
  **************************************************************************************************/
-bool check_dbg_data(HKData * hkd)
+bool check_dbg_data(hk_data_t * hkd)
 {
     /* This condition fails to acknowledge that some values could actually be "0". Despite that,
      * this is very unlikely in a real-world case in which it is uncommon to read an absolute "0"
@@ -60,7 +60,7 @@ bool check_dbg_data(HKData * hkd)
 /***********************************************************************************************//**
  * Select and copy debug data.
  **************************************************************************************************/
-void dump_dbg_data(int dbg_id, HKData * hkd, unsigned int * dbg_param, unsigned int * dbg_value)
+void dump_dbg_data(int dbg_id, hk_data_t * hkd, unsigned int * dbg_param, unsigned int * dbg_value)
 {
     switch(dbg_id) {
         case DBG_PARAM_GPS_TIME_LOCAL:
@@ -167,7 +167,7 @@ void dump_dbg_data(int dbg_id, HKData * hkd, unsigned int * dbg_param, unsigned 
     *dbg_value = htonl(*dbg_value);
 }
 
-void save_dbg_data(unsigned int dbg_param, unsigned int * dbg_value, HKData * hkd)
+void save_dbg_data(unsigned int dbg_param, unsigned int * dbg_value, hk_data_t * hkd)
 {
     /* dbg_param indicates the ID of the parameter sent */
     switch (dbg_param) {

@@ -140,6 +140,55 @@ int dbman_get_all_data(balloon_data_t * data)
     }
 }
 
+int dbman_get_hk_data(hk_data_t * data)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+ 
+    if(dbman_connect() == 0) {
+        if(mysql_query(mysql_handle, "SELECT * FROM " DB_TABLE_HK " ORDER BY "
+                                     "`row_id` DESC LIMIT 0,1") == 0) {
+            if((result = mysql_store_result(mysql_handle)) != NULL) {
+                while((row = mysql_fetch_row(result)) != NULL) {
+                    /* Changed strtod to strtof in all the float values */
+                    data->gps.time_local    = strtol(row[1],  NULL, 10);
+                    data->gps.time_gps      = strtol(row[2],  NULL, 10);
+                    data->gps.lat           = strtof(row[3],  NULL);
+                    data->gps.lng           = strtof(row[4],  NULL);
+                    data->gps.gspeed        = strtof(row[5],  NULL);
+                    data->gps.sea_alt       = strtof(row[6],  NULL);
+                    data->gps.geo_alt       = strtof(row[7],  NULL);
+                    data->mot.acc_x         = strtof(row[8],  NULL);
+                    data->mot.acc_y         = strtof(row[9],  NULL);
+                    data->mot.acc_z         = strtof(row[10], NULL);
+                    data->mot.gyro_x        = strtof(row[11], NULL);
+                    data->mot.gyro_y        = strtof(row[12], NULL);
+                    data->mot.gyro_z        = strtof(row[13], NULL);
+                    data->mot.mag_x         = strtof(row[14], NULL);
+                    data->mot.mag_y         = strtof(row[15], NULL);
+                    data->mot.mag_z         = strtof(row[16], NULL);
+                    data->amb.cpu_temp      = strtof(row[17], NULL);
+                    data->amb.gpu_temp      = strtof(row[18], NULL);
+                    data->amb.in_temp       = strtof(row[19], NULL);
+                    data->amb.in_pressure   = strtof(row[20], NULL);
+                    data->amb.in_calc_alt   = strtof(row[21], NULL);
+                    data->amb.out_temp      = strtof(row[22], NULL);
+                    data->amb.out_pressure  = strtof(row[23], NULL);
+                    data->amb.out_calc_alt  = strtof(row[24], NULL);
+                }
+            } else {
+                /* Result was NULL. */
+                return mysql_errno(mysql_handle);
+            }
+            return 0;
+        }else{
+            return -1;
+        }
+    }else{
+        return -1;
+    }
+}
+
 /***********************************************************************************************//**
  * Inserts GPS and temperature data into the remote MySQL database.
  **************************************************************************************************/

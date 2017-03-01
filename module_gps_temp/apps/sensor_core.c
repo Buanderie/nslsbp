@@ -302,14 +302,14 @@ temp_read(_ambient_sensors * amb_sens)
 int
 beacon_write(_gps_data * gps_data, _motion_sensors * motion_sens, _ambient_sensors * amb_sens)
 {
-	HKData data;
+	hk_data_t data;
 	int ret;
 	memcpy(&data.gps, gps_data, sizeof(_gps_data));
 	memcpy(&data.mot, motion_sens, sizeof(_motion_sensors));
 	memcpy(&data.amb, amb_sens, sizeof(_ambient_sensors));
 	dbman_save_hk_data(&data);
 	#ifndef BEACON_OFF
-	ret = BeaconWrite((const void *) &data, sizeof(HKData));
+	ret = BeaconWrite((const void *) &data, sizeof(hk_data_t));
 	return ret;
 	#endif
 	return 0;
@@ -323,7 +323,7 @@ main (void)
 
 	int _init_gps, _init_imu, _init_beacon, _init_temp;
 
-	fprintf(stderr, "Size of sending struct: %d\n", (int)sizeof(HKData));
+	fprintf(stderr, "Size of sending struct: %d\n", (int)sizeof(hk_data_t));
 	fprintf(stderr, "Size of gps_data: %d\n", (int) sizeof(_gps_data));
 	fprintf(stderr, "Size of motion_data: %d\n", (int) sizeof(_motion_sensors));
 	fprintf(stderr, "Size of ambient_data: %d\n", (int) sizeof(_ambient_sensors));

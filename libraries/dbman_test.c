@@ -28,7 +28,7 @@
 int main(int argc, char **argv)
 {
     double a, b, c;
-    HKData d;
+    hk_data_t d;
 
     /* Inserted values: */
     d.gps.time_local    = time(NULL);

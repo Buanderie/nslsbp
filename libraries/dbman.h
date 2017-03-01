@@ -40,6 +40,7 @@
 /*** TYPEDEFS *************************************************************************************/
 
 /*** FUNCTION HEADERS *****************************************************************************/
+int dbman_get_hk_data(hk_data_t * data);
 int dbman_get_all_data(balloon_data_t * data);
 int dbman_get_last_position(double *lat, double *lon, double *alt); /* unused function */
 int dbman_save_hk_data(hk_data_t * data);
