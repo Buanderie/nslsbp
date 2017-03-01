@@ -506,7 +506,7 @@ void rotors_get_az_el(int fd, double * v_az, double * v_el)
     buf[1] = (char) '\n';
     uart_write(fd, buf, 2);
     /* Recv the yack/nack */
-    if (uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000) == 0){
+    if (uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT) == 0){
         buf[len - 1] = '\0';
         sscanf((const char *)buf, "%[^,] %*[,] %[^,] %*[,]", f1, f2);
         *v_az = atof(f1);
@@ -533,9 +533,10 @@ void rotors_set_az_el(int fd, double v_az, double v_el)
         buf[0] = (char) 'S';
         uart_write(fd, buf, len + 1);
         /* Recv the yack/nack */
-        if (uart_read(fd, (unsigned char *) buf, &len, 1 * 1000 * 1000) == 0){
+        if (uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT) == 0){
             buf[len - 1] = '\0';
             if (strcmp("SYACK", buf) != 0){
+                printfe("[Set az/el] Answer: %s", buf);
                 printfe("[Set az/el] Error setting position\n");
             }
         }else{
@@ -558,10 +559,11 @@ void rotors_home(int fd)
     uart_write(fd, buf, 2);
     /* Recv the yack/nack */
     /* up to 2 minutes of timeout */
-    if((uart_read(fd, (unsigned char *) buf, &len, 2 * 1000 * 1000)) == 0) {
+    /* timeout is in millisecond */
+    if((uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT)) == 0) {
         buf[len - 1] = '\0';
         if(strcmp("HYACK", buf) == 0){
-            if((uart_read(fd, (unsigned char *) buf, &len, 120 * 1000 * 1000)) == 0) {
+            if((uart_read(fd, (unsigned char *) buf, &len, ROTORS_HOME_TIMEOUT)) == 0) {
                 buf[len - 1] = '\0';
                 if(strcmp("HDONE", buf) != 0) {
                     printfe("[Rotors home] Error sending command -> Autohome does not work\n");
@@ -598,7 +600,7 @@ void rotors_abort(int fd)
     buf[1] = (char) '\n';
     uart_write(fd, buf, 2);
     /* Recv the yack/nack */
-    if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
+    if ((ret = uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT)) == 0){
         buf[len - 1] = '\0';
         if (strcmp(buf, "AYACK") == 0) {
             printfo("Rotors aborted the operation successfully\n");
@@ -630,7 +632,7 @@ void rotors_config_pos(int fd, double v_az, double v_el)
         buf[0] = (char) 'C';
         uart_write(fd, buf, len + 1);
         /* Recv the yack/nack */
-        if (uart_read(fd, (unsigned char *) buf, &len, 1 * 1000 * 1000) == 0){
+        if (uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT) == 0){
             buf[len - 1] = '\0';
             if (strcmp("CYACK", buf) != 0){
                 printfe("[Config az/el] Error setting position\n");
@@ -703,22 +705,13 @@ static int input_timeout(int fd, long long microsec)
  **************************************************************************************************/
 int uart_write(int fd, void *buffer, int size)
 {
-    int sel_op, ret;
     int flush_max = 0;
     unsigned char aux[1];
     while(flush_max < 256){
-        sel_op = input_timeout(fd, 0);
-        if (sel_op > 0){
-            ret = read(fd, aux, 1);
-            if (ret != 1){
-                /* error at uart line */
-                return -1;
+        if (available(fd) > 0){
+            if (read(fd, aux, 1) < 0){
+                break;
             }
-        }else if (sel_op == 0){
-            break;
-        }else{
-            /* error at uart line */
-            return -2;
         }
         flush_max++;
     }
@@ -729,6 +722,51 @@ int uart_write(int fd, void *buffer, int size)
 /***********************************************************************************************//**
  * Performs a read with timeouts.
  **************************************************************************************************/
+int readBytesUntil(int fd, char to_find, char * buffer, int max_size)
+{   
+    int cnt = 0;
+    int ret;
+    char byte;
+    
+    if((ret = available(fd) ) > 0){
+        while ((ret = read(fd, &byte, 1)) > 0){
+            /* keep reading */
+            buffer[cnt] = byte;
+            if ((char) buffer[cnt] == to_find){
+                cnt++;
+                return cnt;
+            }else{
+                cnt++;
+                if (cnt >= max_size)
+                    return max_size;
+            }
+        }
+    }else{
+        return ret;
+    }
+    return 0;
+}
+
+int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
+{
+    int ret;
+    int cnt = 0;
+    do{
+        ret = readBytesUntil(fd, '\n', (char *) buffer, 52);
+        if (ret <= 0){
+            *size = 0;
+        }else{
+            *size = ret;
+            return 0;
+        }
+    }while(ret <= 0 && ++cnt < timeout);
+    if (*size != 0)
+        return 0;
+    else
+        return ret;
+}
+
+#if 0
 int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
 {
     int r_op, sel_op;
@@ -755,7 +793,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
                 if(errno == EINTR) continue;
                 else return -2;
             }
-
+            printf("Accumulated: %d\n", accumulated_size);
             // Read from UART:
             if((r_op = read(fd, buffer+accumulated_size, 1)) == 1)
             {
@@ -774,11 +812,41 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
     }
     return 0;
 }
+#endif 
+
+int available(int fd)
+{
+    int bytes_avail;
+    /* wait for a millisecond */
+    usleep(1 * 1000);
+    if (ioctl(fd, FIONREAD, &bytes_avail) == -1){
+        printfe("Error while checking available bytes on UART\n");
+        return -1;
+    }
+    return bytes_avail;
+}
+
+static void set_mincount(int fd, int mcount, int timeout)
+{
+    struct termios tty;
+
+    if (tcgetattr(fd, &tty) < 0) {
+        printfe("Error tcgetattr: %s\n", strerror(errno));
+        return;
+    }
+
+    /* if mcount == 0, timed read with 500ms */
+    tty.c_cc[VMIN] = mcount ? 1 : 0;
+    tty.c_cc[VTIME] = timeout;        /* half second timer */
+
+    if (tcsetattr(fd, TCSANOW, &tty) < 0)
+        printfe("Error tcsetattr: %s\n", strerror(errno));
+}
 
 int open_rotor_interface(const char * tty_path)
 {
     int fd;    // File descriptor for the port
-    struct termios options;
+    struct termios tty;
 
     fd = open(tty_path, O_RDWR | O_NOCTTY);
 
@@ -787,20 +855,27 @@ int open_rotor_interface(const char * tty_path)
         exit(EXIT_FAILURE);
     }
 
-    tcgetattr(fd, &options);        // Get the current options for the port
-    cfsetispeed(&options, B38400);   // Set the baud rates to 230400
-    cfsetospeed(&options, B38400);
+    tcgetattr(fd, &tty);        // Get the current options for the port
+    cfsetispeed(&tty, B38400);   // Set the baud rates to 38400
+    cfsetospeed(&tty, B38400);
 
-    options.c_cflag |= (CLOCAL | CREAD);    // Enable the receiver and set local mode
-    options.c_cflag &= ~PARENB;             // No parity bit
-    options.c_cflag &= ~CSTOPB;             // 1 stop bit
-    options.c_cflag &= ~CSIZE;              // Mask data size
-    options.c_cflag |=  CS8;                // Select 8 data bits
-    options.c_cflag &= ~CRTSCTS;            // Disable hardware flow control
+    tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;         /* 8-bit characters */
+    tty.c_cflag &= ~PARENB;     /* no parity bit */
+    tty.c_cflag &= ~CSTOPB;     /* only need 1 stop bit */
+    tty.c_cflag &= ~CRTSCTS;    /* no hardware flowcontrol */
 
+    /* setup for non-canonical mode */
+    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    tty.c_oflag &= ~OPOST;
     // Set the new attributes
     tcflush( fd, TCIFLUSH );
-    tcsetattr(fd, TCSANOW, &options);
+    tcsetattr(fd, TCSANOW, &tty);
+
+    /* 1 second? */
+    set_mincount(fd, 0, 1);
     return (fd);
 }
 
@@ -812,20 +887,23 @@ void init_rotor_control (int fd)
     int limit = 0;
     /* The arduino when powered for the first time is not initialised in the two following seconds */
     /* Either sleep or repeat the write/read sequence... */
-    sleep(2);
+    
     do{
         buf[0] = (char) 'I';
         buf[1] = (char) '\n';
         uart_write(fd, buf, 2);
+        sleep(2);
         /* Recv the yack/nack */
-        if ((ret = uart_read(fd, (unsigned char *) buf, &len, 2000 * 1000)) == 0){
+        memset(buf, 0, sizeof(buf));
+        if ((ret = uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT)) == 0){
             buf[len - 1] = '\0';
+            printfd("init rotor: %s\n", buf);
             if (strcmp(buf, "IYACK") == 0) {
                 printfo("Rotors successfully initialized\n");
-                return;
+                //return;
             } else {
                 printfd("Unable to initialize the antenna rotors\n");
-                return;
+                //return;
             }
         }else{
             printfe("[Init rotor control] Error reading from UART\n");

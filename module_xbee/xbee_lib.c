@@ -423,7 +423,6 @@ int work (char * dev_name)
       /* otherwise, sleep */
       /* If no message received in timeout_ms, just try to push to DB all the structure */
         if (has_thermal || has_imu || has_gps || has_tc || has_vc){
-          printf("Saving to DB\n");
           dbman_save_xbee_data(&hk);
           has_thermal = false;
           has_vc = false;

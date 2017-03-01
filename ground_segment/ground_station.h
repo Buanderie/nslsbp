@@ -42,6 +42,9 @@
 #define UPC_WEB_SERVER      "https://dev.coderagora.com/iridium/iridium-data.csv"
 #define UPC_GET_DUTY_CYCLE  30
 
+#define ROTORS_TIMEOUT      2 * 1000
+#define ROTORS_HOME_TIMEOUT 120 * 1000
+
 #define KEY_MENU_UP         '8'
 #define KEY_MENU_DOWN       '2'
 #define KEY_MENU_LEFT       '4'
@@ -158,6 +161,8 @@ void init_rotor_control (int fd);
 int open_rotor_interface(const char * tty_path);
 int uart_write(int fd, void *buffer, int size);
 int uart_read(int fd, unsigned char *buffer, int * buf_size, long long timeout);
+
+int available(int fd);
 
 void tty_raw(void);
 void exit_ground_station(void);
