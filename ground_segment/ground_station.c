@@ -233,14 +233,15 @@ int main(int argc, char ** argv)
                 }
                 req_el_down = false;
             } else if(req_az_cw) {
-                if(az < 354.0) {
+                if(az < 355.0) {
                     az += 5.0;
                     rotors_set_az_el(rot_fd, az, el);
-                } else if(az > 354.0 && az <= 359.0) {
-                    az = 359.0;
-                    rotors_set_az_el(rot_fd, az, el);
                 } else {
-                    printfw("Azimuth is 359º\n");
+                    /* Wanna cross the azimuth towards +0º from -0º
+                     * Substract 360º and then sum up 5º
+                     */
+                    az = 0.0;
+                    rotors_set_az_el(rot_fd, az, el);
                 }
                 req_az_cw = false;
             } else if(req_az_ccw) {
@@ -251,7 +252,11 @@ int main(int argc, char ** argv)
                     az = 0.0;
                     rotors_set_az_el(rot_fd, az, el);
                 } else {
-                    printfw("Azimuth is 0º\n");
+                    /* Wanna cross the azimuth towards -0º from +0º
+                     * Sum up 360º and then substract 5º
+                     */
+                    az = az + 360.0 - 5.0;
+                    rotors_set_az_el(rot_fd, az, el);
                 }
                 req_az_ccw = false;
             }
