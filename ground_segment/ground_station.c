@@ -756,6 +756,8 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
         ret = readBytesUntil(fd, '\n', (char *) buffer, 52);
         if (ret <= 0){
             *size = 0;
+            /* Delay and try again */
+            usleep(10 * 1000);
         }else{
             *size = ret;
             return 0;
@@ -818,8 +820,6 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
 int available(int fd)
 {
     int bytes_avail;
-    /* wait for a millisecond */
-    usleep(10 * 1000);
     if (ioctl(fd, FIONREAD, &bytes_avail) == -1){
         printfe("Error while checking available bytes on UART\n");
         return -1;
