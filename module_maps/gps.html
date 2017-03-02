@@ -14,136 +14,76 @@
     <div style="width: 210px; overflow: hidden; margin: 0 auto;">
         <img src="nslsbp_logos_1.png" style="height: 150px; margin-left: -16px; margin-top: -106px;">
     </div>
-    <table>
-        <ul>
-            <tr>
-                <td><li><span class="param_name">SBC time [V]</span> <span class="param_value" id="param_sbc_time">···</span></li></td>
-                <td><li><span class="param_name">GPS time [V]</span> <span class="param_value" id="param_gps_time">···</span></li></td>
-            </tr>
-            <tr>
-                <td><li><span class="param_name">Latitude [V]</span> <span class="param_value" id="param_lat">···</span><span class="param_unit"> º</span></li></td>
-                <td><li><span class="param_name">Longitude [V]</span> <span class="param_value" id="param_lng">···</span><span class="param_unit"> º</span></li></td>
-            </tr>
-            <tr>
-                <td><li><span class="param_name">Sea altitude [V]</span> <span class="param_value" id="param_sea_alt">···</span><span class="param_unit"> km</span></li></td>
-                <td><li><span class="param_name">Geoid altitude [V]</span> <span class="param_value" id="param_geo_alt">···</span><span class="param_unit"> km</span></li></td>
-            </tr>
-            <tr>
-                <td><li><span class="param_name">Velocity [V]</span> <span class="param_value" id="param_gspeed">···</span><span class="param_unit"> m/s</span></li></td>
-            </tr>
-        </ul>
-    </table>
-    <table>
-        <ul>
-            <tr>
-                <td><li><span class="param_name">GPS time [X]</span> <span class="param_value" id="param_xbee_gps_time">···</span></li></td>
-                <td><li><span class="param_name">Altitude [X]</span> <span class="param_value" id="param_xbee_alt">···</span><span class="param_unit"> m</li></td>
-            </tr>
-            <tr>
-                <td><li><span class="param_name">Latitude [X]</span> <span class="param_value" id="param_xbee_lat">···</span><span class="param_unit"> º</li></td>
-                <td><li><span class="param_name">Longitude [X]</span> <span class="param_value" id="param_xbee_lng">···</span><span class="param_unit"> º</li></td>
-            </tr>
-        </ul>
-    </table>
 
-    <table>
-        <ul>
-            <tr>
-                <td><li><span class="param_name">SYS Volt</span> <span class="param_value" id="param_sys_volt">···</span><span class="param_unit"> V</li></td>
-                <td><li><span class="param_name">SYS Curr</span> <span class="param_value" id="param_sys_curr">···</span><span class="param_unit"> A</li></td>
-                <td><li><span class="param_name">SYS Power</span> <span class="param_value" id="param_sys_power">···</span><span class="param_unit"> W</li></td>
-            </tr>
-        </ul>
-    </table>
-<!--     <ul>
-        <li><span class="param_name">SBC time [V]</span> <span class="param_value" id="param_sbc_time">···</span></li>
-        <li><span class="param_name">GPS time [V]</span> <span class="param_value" id="param_gps_time">···</span></li>
-        <li><span class="param_name">Latitude [V]</span> <span class="param_value" id="param_lat">···</span><span class="param_unit"> º</span></li>
-        <li><span class="param_name">Longitude [V]</span> <span class="param_value" id="param_lng">···</span><span class="param_unit"> º</span></li>
-        <li><span class="param_name">Velocity [V]</span> <span class="param_value" id="param_gspeed">···</span><span class="param_unit"> m/s</span></li>
-        <li><span class="param_name">Sea altitude [V]</span> <span class="param_value" id="param_sea_alt">···</span><span class="param_unit"> km</span></li>
-        <li><span class="param_name">Geoid altitude [V]</span> <span class="param_value" id="param_geo_alt">···</span><span class="param_unit"> km</span></li>
-    </ul> -->
- <!--    <ul>
-        <li><span class="param_name">GPS time [X]</span> <span class="param_value" id="param_xbee_gps_time">···</span></li>
-        <li><span class="param_name">Latitude [X]</span> <span class="param_value" id="param_xbee_lat">···</span><span class="param_unit"> º</li>
-        <li><span class="param_name">Longitude [X]</span> <span class="param_value" id="param_xbee_lng">···</span><span class="param_unit"> º</li>
-        <li><span class="param_name">Altitude [X]</span> <span class="param_value" id="param_xbee_alt">···</span><span class="param_unit"> m</li>
-    </ul> -->
-<!-- 
-    <ul>
-        <li><span class="param_name">SYS Volt</span> <span class="param_value" id="param_sys_volt">···</span><span class="param_unit"> V</li>
-        <li><span class="param_name">SYS Curr</span> <span class="param_value" id="param_sys_curr">···</span><span class="param_unit"> A</li>
-        <li><span class="param_name">SYS Power</span> <span class="param_value" id="param_sys_power">···</span><span class="param_unit"> W</li>
-    </ul> -->
-    <table>
-        <ul>
-            <tr>
-                <td><li><span class="param_name">CPU temperature</span> <span class="param_value" id="param_cpu_temp">···</span><span class="param_unit"> ºC</span></li></td>
-                <td><li><span class="param_name">GPU temperature</span> <span class="param_value" id="param_gpu_temp">···</span><span class="param_unit"> ºC</span></li></td>
-            </tr>
-        </ul>
-    </table>    
-    <table>
+    <div id="usr_settings">
+        <input id="usr_date" type="datetime-local">
+        <input id="usr_all" type="checkbox"> All<br>
+        Auto-recenter map <input id="usr_recenter_cb" type="checkbox" checked>
+    </div>
+
+    <table class="telemetry">
         <tr>
-            <td><li><span class="param_name">OUT Temp</span> <span class="param_value" id="param_temp_out">···</span><span class="param_unit"> ºC</li></td>
-            <td><li><span class="param_name">GEN Temp</span> <span class="param_value" id="param_temp_gen">···</span><span class="param_unit"> ºC</li></td>
+            <td class="param_name">GPS time</td><td class="param_value" id="param_gps_time">···</td><td></td>
+            <td class="param_name">Lat.</td><td class="param_value" id="param_lat">···</td><td class="param_unit"> º</td>
+        </tr>
+        <tr>
+            <td class="param_name">SBC time</td><td class="param_value" id="param_sbc_time">···</td><td></td>
+            <td class="param_name">Lon.</td><td class="param_value" id="param_lng">···</td><td class="param_unit"> º</td>
+        </tr>
+        <tr>
+            <td class="param_name">Sea altitude</td><td class="param_value" id="param_sea_alt">···</td><td class="param_unit"> km</td>
+            <td class="param_name">Geoid altitude</td><td class="param_value" id="param_geo_alt">···</td><td class="param_unit"> km</td>
+        </tr>
+        <tr>
+            <td class="param_name">Velocity</td><td class="param_value" id="param_gspeed">···</td><td class="param_unit"> m/s</td>
         </tr>
     </table>
-    <table>
+
+
+    <table class="payload">
         <tr>
-            <td><li><span class="param_name">PAY Temp</span> <span class="param_value" id="param_temp_pay">···</span><span class="param_unit"> ºC</li></td>
-        <td><li><span class="param_name">BAT Temp</span> <span class="param_value" id="param_temp_bat">···</span><span class="param_unit"> ºC</li></td>
+            <td class="param_name">GPS time</td><td class="param_value" id="param_xbee_gps_time">···</td><td></td>
+            <td class="param_name">Lat.</td><td class="param_value" id="param_xbee_lat">···</td><td class="param_unit"> º</td>
+        </tr>
+        <tr>
+            <td class="param_name">Altitude</td><td class="param_value" id="param_xbee_alt">···</td><td class="param_unit"> m</td>
+            <td class="param_name">Lon.</td><td class="param_value" id="param_xbee_lng">···</td><td class="param_unit"> º</td>
         </tr>
     </table>
-    <table>
-        <ul>
-            <tr>
-                <td><li><span class="param_name">ROLL</span> <span class="param_value" id="param_roll">···</span><span class="param_unit"> º</li></td>
-                <td><li><span class="param_name">PITCH</span> <span class="param_value" id="param_pitch">···</span><span class="param_unit"> º</li></td>
-                <td><li><span class="param_name">YAW</span> <span class="param_value" id="param_yaw">···</span><span class="param_unit"> º</li></td>
-            </tr>
-        </ul>
+
+    <table class="telemetry">
+        <tr>
+            <td class="param_name">Sys. Voltage</td><td class="param_value" id="param_sys_volt">···</td><td class="param_unit"> V</td>
+            <td class="param_name">Sys. Current</td><td class="param_value" id="param_sys_curr">···</td><td class="param_unit"> A</td>
+            <td class="param_name">Sys. Power</td><td class="param_value" id="param_sys_power">···</td><td class="param_unit"> W</td>
+        </tr>
+        <tr>
+            <td class="param_name">CPU Temp.</td><td class="param_value" id="param_cpu_temp">···</td><td class="param_unit"> ºC</td>
+            <td class="param_name">GPU Temp.</td><td class="param_value" id="param_gpu_temp">···</td><td class="param_unit"> ºC</td>
+        </tr>
+        <tr>
+            <td class="param_name">Outside Temp.</td><td class="param_value" id="param_temp_out">···</td><td class="param_unit"> ºC</td>
+            <td class="param_name">Platform Temp.</td><td class="param_value" id="param_temp_gen">···</td><td class="param_unit"> ºC</td>
+        </tr>
+        <tr>
+            <td class="param_name">Payload Temp.</td><td class="param_value" id="param_temp_pay">···</td><td class="param_unit"> ºC</td>
+            <td class="param_name">Battery Temp.</td><td class="param_value" id="param_temp_bat">···</td><td class="param_unit"> ºC</td>
+        </tr>
     </table>
-
-    <!-- <ul>
-        <li><span class="param_name">ROLL</span> <span class="param_value" id="param_roll">···</span><span class="param_unit"> º</li>
-        <li><span class="param_name">PITCH</span> <span class="param_value" id="param_pitch">···</span><span class="param_unit"> º</li>
-        <li><span class="param_name">YAW</span> <span class="param_value" id="param_yaw">···</span><span class="param_unit"> º</li>
-    </ul> -->
-
-    <!--
-    <ul>
-        <li><span class="param_name">Accelerometer</span> <span class="param_value" id="param_acc">···</span><span class="param_unit"> g</span></li>
-        <li><span class="param_name">Gyroscope</span> <span class="param_value" id="param_gyro">···</span><span class="param_unit"> º/s</span></li>
-        <li><span class="param_name">Magnetometer</span> <span class="param_value" id="param_mag">···</span><span class="param_unit"> μT</span></li>
-
-    </ul>
-    -->
-    <!-- <ul>
-        <li><span class="param_name">CPU temperature</span> <span class="param_value" id="param_cpu_temp">···</span><span class="param_unit"> ºC</span></li>
-        <li><span class="param_name">GPU temperature</span> <span class="param_value" id="param_gpu_temp">···</span><span class="param_unit"> ºC</span></li>
-        <li><span class="param_name">Inside temperature</span> <span class="param_value" id="param_in_temp">···</span><span class="param_unit"> ºC</span></li>
-        <li><span class="param_name">Outside temperature</span> <span class="param_value" id="param_out_temp">···</span><span class="param_unit"> ºC</span></li>
-        
-    </ul> -->
-    <!--
-    <ul>
-        <li><span class="param_name">Inside pressure</span> <span class="param_value" id="param_in_pressure">···</span><span class="param_unit"> hPa</span></li>
-        <li><span class="param_name">Outside pressure</span> <span class="param_value" id="param_out_pressure">···</span><span class="param_unit"> hPa</span></li>
-    </ul>
-    -->
-    <table>
-        <ul>
-            <tr>
-                <td><li><span class="param_name">TC received</span> <span class="param_value" id="param_tc_received">···</span></li></td>
-                <td><li><span class="param_name">Ping received</span> <span class="param_value" id="param_ping_received">···</span></li></td>
-            </tr>
-        </ul>
+    <table class="telemetry">
+        <tr>
+            <td class="param_name">Roll</td><td class="param_value" id="param_roll">···</td><td class="param_unit"> º</td>
+            <td class="param_name">Pitch</td><td class="param_value" id="param_pitch">···</td><td class="param_unit"> º</td>
+            <td class="param_name">Yaw</td><td class="param_value" id="param_yaw">···</td><td class="param_unit"> º</td>
+        </tr>
     </table>
-    <!-- <ul>
-        <li><span class="param_name">TC received</span> <span class="param_value" id="param_tc_received">···</span></li>
-        <li><span class="param_name">Ping received</span> <span class="param_value" id="param_ping_received">···</span></li>
-    </ul> -->
+    <table class="telemetry">
+        <tr>
+            <td class="param_name">Cmd count</td><td class="param_value" id="param_tc_received">···</td><td class="param_unit">RX cmds.</td>
+        </tr>
+        <tr>
+            <td class="param_name">PingCmd count</td><td class="param_value" id="param_ping_received">···</td><td class="param_unit">RX cmds.</td>
+        </tr>
+    </table>
 </body>
 </html>

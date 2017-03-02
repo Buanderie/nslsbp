@@ -8,6 +8,7 @@ body, html {
     width: 100%;
     height: 100%;
     background-color: #2a323f;
+    margin: 0;
 }
 iframe {
     border: none;
@@ -20,25 +21,47 @@ iframe {
     height: 100%;
 }
 
-/* List of parameters style: **********************************************************************/
-ul {
-    padding: 13px;
-}
-li {
-    display: block;
+/* User settings styles: **************************************************************************/
+#usr_settings {
+    padding: 10px 0;
     color: #fff;
-    font-size: 12px;
+    font-size: 16px;
+    text-align: center;
 }
-li .param_name {
-    background-color: #8699b7;
+#usr_settings input {
+    background-color: #2a323f;
+    border: none;
+    color: #fff;
+    font-family: 'Roboto';
+    font-size: 16px;
+}
+
+/* List of parameters style: **********************************************************************/
+table {
+    margin: 10px;
+    font-size: 16px;
+}
+td {
+    /*display: block;*/
+    color: #fff;
+}
+td.param_name {
     padding: 2px 6px 2px 4px;
     margin: 2px 6px 2px 4px;
-    color: #000;
     border-radius: 3px;
-    display: inline-block;
+    display: block;
+    text-align: right;
     box-shadow: 1px 1px 3px rgba(0,0,0,.5), 0 0 5px rgba(0,0,0,.45);
 }
-li .param_value {
+table.telemetry td.param_name {
+    background-color: #8699b7;
+    color: #000;
+}
+table.payload td.param_name {
+    background-color: #1fcbd1;
+    color: #000;
+}
+td.param_value {
     font-family: monospace;
 }
 
@@ -50,115 +73,10 @@ li .param_value {
 }
 .param_unit {
     color: #7c7c7c;
-    width: 30px;
+    /*width: 30px;*/
     background: transparent;
-    text-align: center;
+    text-align: left;
     box-shadow: none;
+    padding-left: 5px;
     text-shadow: 1px 1px 3px rgba(0,0,0,.5), 0 0 5px rgba(0,0,0,.15);
 }
-/* Index layout style: ***************************************************************************
-.frame_table {
-    background-color: #424242;
-    width: 100%;
-    height: 100%;
-    display: table;
-    border-spacing: 2px;
-}
-.frame_row {
-    display: table-row;
-    width: 100%;
-    height: 50%;
-}
-.frame_cell {
-    display: table-cell;
-}
-
-
-
-
-* Table properties: *****************************************************************************
-.table {
-    width: 100%;
-    display: table;
-
-    border-spacing: 4px;
-    border-collapse: separate;
-
-    font-size: 10px;
-    font-weight: 300;
-    color: #ccc;
-
-    line-height: 12px;
-}
-.table_collapse_rows {
-    border-spacing: 0 4px;
-}
-.table_row {
-    display: table-row;
-}
-.table_collapse_rows .table_row {
-    box-shadow: 0 0 6px rgba(0,0,0,.5); * This doesn't work in Chrome *
-    border-radius: 5px;
-}
-.table_collapse_rows .table_row div:first-child {
-    border-radius: 5px 0 0 5px;
-}
-.table_collapse_rows .table_row div:last-child {
-    border-radius: 0 5px 5px 0;
-}
-.table_cell {
-    padding: 5px;
-    display: table-cell;
-    background-color: #7c7c7c;
-    border-radius: 5px;
-    box-shadow: 0 0 6px rgba(0,0,0,.5);
-    text-align: center;
-    vertical-align: middle;
-}
-.table_cell_inactive {
-    padding: 5px;
-    display: table-cell;
-    background-color: transparent;
-    border-radius: 5px;
-}
-.table_collapse_rows .table_cell {
-    background-color: #424242;
-    border-radius: 0;
-    text-shadow: 1px 1px 1px rgba(0,0,0,.5), 0 0 5px rgba(0,0,0,.15);
-    vertical-align: baseline;
-}
-.table_collapse_rows .table_cell:first-child {
-    box-shadow:
-        inset 0px 11px 6px -10px rgba(0,0,0,.4),
-        inset 0px -11px 6px -10px rgba(0,0,0,.4),
-        inset 11px 0px 6px -10px rgba(0,0,0,.4);
-}
-.table_collapse_rows .table_cell {
-    box-shadow:
-        inset 0px 11px 6px -10px rgba(0,0,0,.4),
-        inset 0px -11px 6px -10px rgba(0,0,0,.4);
-}
-.table_collapse_rows .table_cell:last-child {
-    box-shadow:
-        inset 0px 11px 6px -10px rgba(0,0,0,.4),
-        inset 0px -11px 6px -10px rgba(0,0,0,.4),
-        inset -11px 0px 6px -10px rgba(0,0,0,.4);
-}
-.table_collapse_rows .table_cell:last-child {
-    border-right: solid 2px #e9521c;
-}
-.table_collapse_rows .table_cell:first-child {
-    border-left: solid 2px #e9521c;
-}
-.table_header {
-    color: #e9521c;
-    background: transparent;
-    box-shadow: none;
-}
-
-* jQuery Tabs: **********************************************************************************
-.ui-tabs .ui-tabs-hide {
-    display: none;
-}
-
-*/

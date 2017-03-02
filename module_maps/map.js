@@ -14,6 +14,8 @@ var lineCoordinatesPath;
 var map;
 var map_marker;
 var interval_tables, interval_map;
+var usr_time;
+var usr_recenter = true;
 
 /* On document ready actions: ------------------------------------------------------------------ */
 $(document).ready(function() {
@@ -21,12 +23,75 @@ $(document).ready(function() {
     console.log("NSLSBP map ready.");
     //update_tables();
     interval_tables = window.setInterval(update_tables, 1000);
+
+    var usr_date = top.document.getElementById('gps_frame').contentWindow.document.getElementById('usr_date');
+    var usr_all = top.document.getElementById('gps_frame').contentWindow.document.getElementById('usr_all');
+    var usr_recenter_cb = top.document.getElementById('gps_frame').contentWindow.document.getElementById('usr_recenter_cb');
+    var nowos = new Date();
+    nowos.setDate(nowos.getDate() - 1);
+    var day_str   = (nowos.getDate() < 10 ? "0" : "") + nowos.getDate();
+    var hour_str  = (nowos.getHours() < 10 ? "0" : "") + nowos.getHours();
+    var min_str   = (nowos.getMinutes() < 10 ? "0" : "") + nowos.getMinutes();
+    var month_str = ((nowos.getMonth() + 1) < 10 ? "0" : "") + (nowos.getMonth() + 1);
+    var nowos_str = nowos.getFullYear() + "-" + month_str + "-" + day_str + "T" + hour_str + ":" + min_str + ":00.000";
+    console.log("Retrieving points from: " + nowos_str);
+    usr_date.value = nowos_str;
+
+    /* Install onInput listener: */
+    usr_date.oninput = usr_date_changed;
+    usr_all.onchange = usr_date_changed;
+    usr_recenter_cb.onchange = usr_recenter_changed;
+
+    /* Set loading timestamp: */
+    usr_time = (nowos.getTime() / 1000).toFixed();
+    usr_recenter = usr_recenter_cb.checked;
 });
+
+
+function usr_date_changed()
+{
+    console.log("User date settings chaged");
+    var usr_date = top.document.getElementById('gps_frame').contentWindow.document.getElementById('usr_date');
+    var usr_all = top.document.getElementById('gps_frame').contentWindow.document.getElementById('usr_all');
+    if(usr_all.checked) {
+        usr_time = 0;
+        gps_cmplt_path = new Array();
+        xbee_cmplt_path = new Array();
+        gps_time_line  = new Array();
+        xbee_time_line = new Array();
+        download_data();
+    } else {
+        var nowos = new Date(usr_date.value);
+        nowos.setDate(nowos.getDate() - 1);
+        var day_str   = (nowos.getDate() < 10 ? "0" : "") + nowos.getDate();
+        var hour_str  = (nowos.getHours() < 10 ? "0" : "") + nowos.getHours();
+        var min_str   = (nowos.getMinutes() < 10 ? "0" : "") + nowos.getMinutes();
+        var month_str = ((nowos.getMonth() + 1) < 10 ? "0" : "") + (nowos.getMonth() + 1);
+        var nowos_str = nowos.getFullYear() + "-" + month_str + "-" + day_str + "T" + hour_str + ":" + min_str + ":00.000";
+        console.log("Retrieving points from: " + nowos_str);
+        usr_time = (nowos.getTime() / 1000).toFixed();
+        gps_cmplt_path = new Array();
+        xbee_cmplt_path = new Array();
+        gps_time_line  = new Array();
+        xbee_time_line = new Array();
+        download_data();
+    }
+}
+
+
+function usr_recenter_changed()
+{
+    console.log("User map recenter settings chaged");
+    var usr_recenter_cb = top.document.getElementById('gps_frame').contentWindow.document.getElementById('usr_recenter_cb');
+    usr_recenter = usr_recenter_cb.checked;
+    download_data();
+}
+
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: 41.39, lng: 2.11},
-        zoom: 6
+        zoom: 12
     });
     lineCoordinatesPath = new google.maps.Polyline({
         path: gps_cmplt_path,
@@ -51,22 +116,20 @@ function redraw() {
     // map.setCenter({lat: new_lat, lng: new_lng})
     // map_marker.setPosition({lat: new_lat, lng: new_lng});
 
-    if(gps_cmplt_path.length > 0) {
+    if(gps_cmplt_path.length > 0 && xbee_cmplt_path.length == 0) {
         lineCoordinatesPath.setPath(gps_cmplt_path);
-        map.setCenter({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
-        map_marker.setPosition({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
-    } else {
-        console.log("NO GPS DATA");
-        map.setCenter({lat: 41.39, lng: 2.11});
+        if(usr_recenter) {
+            map.setCenter({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
+            map_marker.setPosition({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
+        }
     }
 
     if(xbee_cmplt_path.length > 0) {
         lineCoordinatesPath.setPath(xbee_cmplt_path);
-        // map.setCenter({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
-        // map_marker.setPosition({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
-    } else {
-        console.log("NO XBEE DATA");
-        // map.setCenter({lat: 41.39, lng: 2.11});
+        if(usr_recenter) {
+            map.setCenter({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
+            map_marker.setPosition({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
+        }
     }
 }
 
@@ -102,7 +165,9 @@ const IDX_XBEE_TC_RECEIVED   = 15;
 const IDX_XBEE_PING_RECEIVED = 16;
 
 function download_data() {
-    var path = "map_download.php?date_gps=" + (gps_time_line.length < 1 ? 0 : gps_time_line[gps_time_line.length - 1].time_gps) + "&date_xbee=" + (xbee_time_line.length < 1 ? 0 : xbee_time_line[xbee_time_line.length - 1]);
+    console.log(usr_time);
+    var path =  "map_download.php?date_gps=" + (gps_time_line.length < 1 ? usr_time : gps_time_line[gps_time_line.length - 1].time_gps) +
+                "&date_xbee=" + (xbee_time_line.length < 1 ? usr_time : xbee_time_line[xbee_time_line.length - 1]);
     $.ajax({
         url: path,
         dataType: "text",
@@ -125,9 +190,7 @@ function download_data() {
                 });
                 xbee_time_line.push(parseFloat(query_data[IDX_XBEE_TIME_GPS]));
             });
-            if(new_data.gps.length > 0 || new_data.xbee.length > 0) {
-                redraw();
-            }
+            redraw();
         }
 
     });

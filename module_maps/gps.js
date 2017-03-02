@@ -12,73 +12,73 @@ function update_tables() {
             var new_data = $.parseJSON(data);
 
             var cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_sbc_time');
-            cell.innerHTML = (new Date(new_data.gps.time_local*1000)).toLocaleString();
+            cell.innerHTML = (new Date(new_data.gps.time_local * 1000)).toLocaleString();
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_gps_time');
-            cell.innerHTML = (new Date(new_data.gps.time_gps*1000)).toLocaleString();
+            cell.innerHTML = (new Date(new_data.gps.time_gps * 1000)).toLocaleString();
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_lat');
-            cell.innerHTML = new_data.gps.lat;
+            cell.innerHTML = parseFloat(new_data.gps.lat).toFixed(6);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_lng');
-            cell.innerHTML = new_data.gps.lng;
+            cell.innerHTML = parseFloat(new_data.gps.lng).toFixed(6);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_gspeed');
             cell.innerHTML = new_data.gps.gspeed;
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_sea_alt');
-            cell.innerHTML = new_data.gps.sea_alt / 1000;
+            cell.innerHTML = parseFloat(new_data.gps.sea_alt / 1000).toFixed(3);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_geo_alt');
-            cell.innerHTML = new_data.gps.geo_alt / 1000;
+            cell.innerHTML = parseFloat(new_data.gps.geo_alt / 1000).toFixed(3);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_xbee_gps_time');
             cell.innerHTML = (new Date(new_data.xbee.time_gps*1000)).toLocaleString();
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_xbee_lat');
-            cell.innerHTML = new_data.xbee.lat;
+            cell.innerHTML = parseFloat(new_data.xbee.lat).toFixed(6);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_xbee_lng');
-            cell.innerHTML = new_data.xbee.lng;
+            cell.innerHTML = parseFloat(new_data.xbee.lng).toFixed(6);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_xbee_alt');
-            cell.innerHTML = new_data.xbee.alt;
+            cell.innerHTML = parseFloat(new_data.xbee.alt / 1000).toFixed(3);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_sys_volt');
-            cell.innerHTML = new_data.xbee.vsys;
+            cell.innerHTML = parseFloat(new_data.xbee.vsys).toFixed(2);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_sys_curr');
-            cell.innerHTML = new_data.xbee.isys;
+            cell.innerHTML = parseFloat(new_data.xbee.isys).toFixed(2);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_sys_power');
-            cell.innerHTML = new_data.xbee.wsys;
+            cell.innerHTML = parseFloat(new_data.xbee.wsys).toFixed(2);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_temp_out');
-            cell.innerHTML = new_data.xbee.out_temp;
+            cell.innerHTML = parseFloat(new_data.xbee.out_temp).toFixed(1);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_temp_gen');
-            cell.innerHTML = new_data.xbee.gen_temp;
+            cell.innerHTML = parseFloat(new_data.xbee.gen_temp).toFixed(1);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_temp_pay');
-            cell.innerHTML = new_data.xbee.pay_temp;
+            cell.innerHTML = parseFloat(new_data.xbee.pay_temp).toFixed(1);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_temp_bat');
-            cell.innerHTML = new_data.xbee.bat_temp;
+            cell.innerHTML = parseFloat(new_data.xbee.bat_temp).toFixed(1);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_roll');
-            cell.innerHTML = new_data.xbee.roll;
+            cell.innerHTML = parseFloat(new_data.xbee.roll).toFixed(2);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_pitch');
-            cell.innerHTML = new_data.xbee.pitch;
+            cell.innerHTML = parseFloat(new_data.xbee.pitch).toFixed(2);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_yaw');
-            cell.innerHTML = new_data.xbee.yaw;
+            cell.innerHTML = parseFloat(new_data.xbee.yaw).toFixed(2);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_cpu_temp');
-            cell.innerHTML = new_data.gps.cpu_temp;
+            cell.innerHTML = parseFloat(new_data.gps.cpu_temp).toFixed(1);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_gpu_temp');
-            cell.innerHTML = new_data.gps.gpu_temp;
+            cell.innerHTML = parseFloat(new_data.gps.gpu_temp).toFixed(1);
 
             cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_tc_received');
             cell.innerHTML = new_data.xbee.tc_received;
