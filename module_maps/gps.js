@@ -94,7 +94,7 @@ function update_tables() {
 function time_update() {
     var cell = top.document.getElementById('gps_frame').contentWindow.document.getElementById('param_update');
     if(time_diff < 0) {
-        console.log('Error on last update (future time)');
+        console.log("Error on last update (future time)");
         cell.innerHTML = "? seconds";
         time_interval = null;
     } else {
