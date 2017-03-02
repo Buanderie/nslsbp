@@ -10,7 +10,7 @@ var xbee_time_line  = new Array();
 //             {lat: -27.467, lng: 153.027}
 // ];
 // var time_line = [1474022404, 1474022405, 1474022406, 1474022407];
-var lineCoordinatesPath;
+var lineCoordinatesPathGPS, lineCoordinatesPathXBee;
 var map;
 var map_marker;
 var interval_tables, interval_map;
@@ -93,17 +93,36 @@ function initMap() {
         center: {lat: 41.39, lng: 2.11},
         zoom: 12
     });
-    lineCoordinatesPath = new google.maps.Polyline({
+    // Create the legend and display on the map
+    var legend = document.createElement('div');
+    legend.id = 'legend';
+    var content = [];
+    content.push('<h3>MAP DATA</h3>');
+    content.push('<p><div class="color blue"></div>GPS</p>');
+    content.push('<p><div class="color red"></div>XBEE</p>');
+    legend.innerHTML = content.join('');
+    legend.index = 1;
+    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend);
+
+    lineCoordinatesPathGPS = new google.maps.Polyline({
         path: gps_cmplt_path,
         geodesic: true,
         strokeColor: '#2E10FF',
         strokeOpacity: 1.0,
         strokeWeight: 2
     });
+    lineCoordinatesPathXBee = new google.maps.Polyline({
+        path: xbee_cmplt_path,
+        geodesic: true,
+        strokeColor: '#B5192C',
+        strokeOpacity: 1.0,
+        strokeWeight: 2
+    });
     map_marker = new google.maps.Marker({position: {lat: 41.39, lng: 2.11}, map: map});
-
     map_marker.setMap(map);
-    lineCoordinatesPath.setMap(map);
+    
+    lineCoordinatesPathGPS.setMap(map);
+    lineCoordinatesPathXBee.setMap(map);
 
     interval_map = window.setInterval(download_data, 1000);
 }
@@ -116,20 +135,38 @@ function redraw() {
     // map.setCenter({lat: new_lat, lng: new_lng})
     // map_marker.setPosition({lat: new_lat, lng: new_lng});
 
-    if(gps_cmplt_path.length > 0 && xbee_cmplt_path.length == 0) {
-        lineCoordinatesPath.setPath(gps_cmplt_path);
+    // if(gps_cmplt_path.length > 0 && xbee_cmplt_path.length == 0) {
+    //     lineCoordinatesPath.setPath(gps_cmplt_path);
+    //     if(usr_recenter) {
+    //         map.setCenter({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
+    //         map_marker.setPosition({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
+    //     }
+    // }
+
+    // if(xbee_cmplt_path.length > 0) {
+    //     lineCoordinatesPath.setPath(xbee_cmplt_path);
+    //     if(usr_recenter) {
+    //         map.setCenter({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
+    //         map_marker.setPosition({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
+    //     }
+    // }
+
+    if(xbee_cmplt_path.length > 0) {
+        lineCoordinatesPathXBee.setPath(xbee_cmplt_path);
+    } else {
+        console.log("NO XBEE DATA");
+    }
+    if(gps_cmplt_path.length > 0) {
+        lineCoordinatesPathGPS.setPath(gps_cmplt_path);
+        map.setCenter({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
+        map_marker.setPosition({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
         if(usr_recenter) {
             map.setCenter({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
             map_marker.setPosition({lat: gps_cmplt_path[gps_cmplt_path.length-1].lat, lng: gps_cmplt_path[gps_cmplt_path.length-1].lng});
         }
-    }
-
-    if(xbee_cmplt_path.length > 0) {
-        lineCoordinatesPath.setPath(xbee_cmplt_path);
-        if(usr_recenter) {
-            map.setCenter({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
-            map_marker.setPosition({lat: xbee_cmplt_path[xbee_cmplt_path.length-1].lat, lng: xbee_cmplt_path[xbee_cmplt_path.length-1].lng});
-        }
+    } else {
+        console.log("NO GPS DATA");
+        map.setCenter({lat: 41.39, lng: 2.11});
     }
 }
 
