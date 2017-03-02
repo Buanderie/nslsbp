@@ -13,6 +13,7 @@
 COUNTDOWN_DELAY=0:0:0
 COUNTDOWN_PATH=countdown_t-10.flv
 WATERMARK_PATH=watermark_480p.png
+WATERMARK_CAM1_PATH=watermark_480p_cam1.png
 NOVIDEO_PATH=no-video_480p.png
 VBITRATE=450000
 PVRATE=$(($VBITRATE / 8))
@@ -174,7 +175,7 @@ case $1 in
         tail -f vitow_output | pv -L $PVRATE -q |                                                   \
             ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero               \
                     -i -                                                                            \
-                    -i $WATERMARK_PATH                                                              \
+                    -i $WATERMARK_CAM1_PATH                                                         \
                         -filter_complex "$FILTER_COMPLEX"                                           \
                         -vcodec $VCSETTINGS                                                         \
                         -acodec $ACSETTINGS                                                         \
