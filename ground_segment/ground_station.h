@@ -58,6 +58,11 @@
 #define KEY_MENU_HELPC      'H'
 #define KEY_MENU_COMMAND    '+'
 #define KEY_MENU_QUERY      '*'
+#define KEY_MENU_ABORT      'a'
+#define KEY_MENU_ABORTC     'A'
+#define KEY_MENU_INIT       'i'
+#define KEY_MENU_INITC      'I'
+
 
 #define DBG_REDB        "\x1b[31;1m"
 #define DBG_REDD        "\x1b[31m"

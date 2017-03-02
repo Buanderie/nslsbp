@@ -21,7 +21,7 @@ bool gs_exit = false;
 double az, el;
 double offset_az, offset_el;
 char tty_dev_name[26];
-int fd;
+int rot_fd;
 control_mode mode = MODE_MANUAL;
 struct termios orig_termios;  /* TERMinal I/O Structure */
 bool req_el_up = false;
@@ -88,8 +88,7 @@ int main(int argc, char ** argv)
     }
     tty_raw();  /* Set tty in raw mode */
 
-    fd = open_rotor_interface(tty_dev_name);
-    init_rotor_control(fd);
+    rot_fd = open_rotor_interface(tty_dev_name);
 
     pthread_create(&rotors_th, NULL, rotor_control, NULL);
     pthread_create(&upcdata_th, NULL, dbupc_control, NULL);
@@ -149,7 +148,7 @@ int main(int argc, char ** argv)
 
                     el = RAD2DEG(atan((delta_alt) / dist));
                     printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                     /* Find above the implementation of the automatic mode, this cames from Beacon readings */
                 }
             }
@@ -196,7 +195,7 @@ int main(int argc, char ** argv)
 
                     el = RAD2DEG(atan((delta_alt) / dist));
                     printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                     /* Find above the implementation of the automatic mode, this cames from Beacon readings */
                 }
             }
@@ -209,15 +208,15 @@ int main(int argc, char ** argv)
             if(req_go_home) {
                 az = 0.0;
                 el = 0.0;
-                rotors_home(fd);
+                rotors_home(rot_fd);
                 req_go_home = false;
             } else if(req_el_up) {
                 if(el < 85.0) {
                     el += 5.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else if(el > 85.0 && el <= 90.0) {
                     el = 90.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else {
                     printfw("Elevation is 90º\n");
                 }
@@ -225,10 +224,10 @@ int main(int argc, char ** argv)
             } else if(req_el_down) {
                 if(el > 5.0) {
                     el -= 5.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else if(el > 0.0 && el <= 5.0) {
                     el = 0.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else {
                     printfw("Elevation is 0º\n");
                 }
@@ -236,10 +235,10 @@ int main(int argc, char ** argv)
             } else if(req_az_cw) {
                 if(az < 354.0) {
                     az += 5.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else if(az > 354.0 && az <= 359.0) {
                     az = 359.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else {
                     printfw("Azimuth is 359º\n");
                 }
@@ -247,10 +246,10 @@ int main(int argc, char ** argv)
             } else if(req_az_ccw) {
                 if(az > 5.0) {
                     az -= 5.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else if(az > 0.0 && az <= 5.0) {
                     az = 0.0;
-                    rotors_set_az_el(fd, az, el);
+                    rotors_set_az_el(rot_fd, az, el);
                 } else {
                     printfw("Azimuth is 0º\n");
                 }
@@ -306,15 +305,15 @@ int main(int argc, char ** argv)
 
                 el = RAD2DEG(atan((delta_alt) / dist));
                 printfo("Distance: %.3lf km., Azimuth: %.1lf, Elevation: %.1lf\n", dist / 1000.0, az, el);
-                rotors_set_az_el(fd, az, el);
+                rotors_set_az_el(rot_fd, az, el);
             }
 
         }
         usleep(500000); /* half second of duty cycling */
     }
 
-    if(fd > 0) {
-        close(fd);
+    if(rot_fd > 0) {
+        close(rot_fd);
     }
 
     exit(0);
@@ -459,7 +458,7 @@ void * rotor_control(void * arg)
                         printfd("Set   azimuth = %.2lf º;  elevation = %.2lf º\n", az, el);
                         real_az = 0.0;
                         real_el = 0.0;
-                        rotors_get_az_el(fd, &real_az, &real_el);
+                        rotors_get_az_el(rot_fd, &real_az, &real_el);
                         printfd("Read  azimuth = %.2lf º;  elevation = %.2lf º\n", real_az, real_el);
                     }else{
                         printfe("Rotors cannot be queried while autohome\n");
@@ -472,6 +471,16 @@ void * rotor_control(void * arg)
                 case KEY_MENU_QUIT:
                 case KEY_MENU_QUITC:
                     gs_exit = true;
+                    break;
+                case KEY_MENU_ABORT:
+                case KEY_MENU_ABORTC:
+                    printfe("Aborting rotors operation\n");
+                    rotors_abort(rot_fd);
+                    break;
+                case KEY_MENU_INIT:
+                case KEY_MENU_INITC:
+                    printfd("Rotors init query\n");
+                    init_rotor_control(rot_fd);
                     break;
                 case KEY_MENU_COMMAND:
                     printfw("Command mode not implemented\n");
@@ -902,13 +911,13 @@ void init_rotor_control (int fd)
                 printfo("Rotors successfully initialized\n");
                 return;
             } else {
-                printfd("Unable to initialize the antenna rotors\n");
+                printfe("Unable to initialize the antenna rotors\n");
                 return;
             }
         }else{
             printfe("[Init rotor control] Error reading from UART\n");
         }
-    } while(ret != 0 && ++limit < 4);
+    } while(ret == 0 && ++limit < 4);
 }
 
 
@@ -919,6 +928,7 @@ void init_rotor_control (int fd)
 void exit_ground_station(void)
 {
     tcsetattr(0, TCSAFLUSH, &orig_termios);
+    close(rot_fd);
 }
 /***********************************************************************************************//**
  * Configures the TTY in "raw" mode.
