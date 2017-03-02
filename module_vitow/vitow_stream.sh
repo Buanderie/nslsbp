@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Options:
 #   ./vitow_stream.sh t           # Only shows video with Mplayer.
@@ -59,9 +59,9 @@ case $1 in
             OUTPUT2=""
             LOCAL_PLAYER="mplayer"
         else
-            FILTER_COMPLEX="[1:v][2:v] overlay=[tmp]; [tmp][3:v] overlay=0:0, split=2[out1][out2]"
-            OUTPUT1="-map '[out1]' -vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f flv $STREAM"
-            OUTPUT2="-map '[out2]' -vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f mp4 udp://192.168.1.100:1234"
+            FILTER_COMPLEX="[1:v][2:v] overlay=[tmp]; [tmp][3:v]overlay=[tmp2]; [tmp2]split=2[out1][out2]"
+            OUTPUT1="-map \"[out1]\" -map 0:a -vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f flv $STREAM"
+            OUTPUT2="-map \"[out2]\" -map 0:a -vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f mp4 udp://locahost:1234"
             LOCAL_PLAYER="VLC (UDP stream)"
         fi
         ;;
@@ -133,11 +133,20 @@ case $1 in
     t)
         tail -f vitow_output | mplayer -fps 25 -framedrop -demuxer h264es -
         ;;
-    s|S|y)
+    s|S)
         tail -f vitow_output | pv -L 56250 |                                                        \
             ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero               \
                     -i -                                                                            \
                     -ss $COUNTDOWN_DELAY -i $COUNTDOWN_PATH                                         \
+                    -i $WATERMARK_PATH                                                              \
+                    -filter_complex "$FILTER_COMPLEX"                                               \
+                    $OUTPUT1                                                                        \
+                    $OUTPUT2
+        ;;
+    y)
+        tail -f vitow_output | pv -L 56250 |                                                        \
+            ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero               \
+                    -i -                                                                            \
                     -i $WATERMARK_PATH                                                              \
                     -filter_complex "$FILTER_COMPLEX"                                               \
                     $OUTPUT1                                                                        \
