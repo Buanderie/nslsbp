@@ -8,10 +8,18 @@
 #   ./vitow_stream.sh S + HH MM   # Idem to option 's' but opens FFmpeg output instead of using VITOW input.
 #   ./vitow_stream.sh y test      # Streams video with watermark, without countdown to the test live stream. [+ Mplayer]
 #   ./vitow_stream.sh y           # Streams video with watermark, without countdown to the event live stream. [+ Mplayer]
+#   ./vitow_stream.sh i           # Streams the no-video still image.
 
 COUNTDOWN_DELAY=0:0:0
 COUNTDOWN_PATH=countdown_t-10.flv
 WATERMARK_PATH=watermark_480p.png
+NOVIDEO_PATH=no-video_480p.png
+VBITRATE=450000
+PVRATE=$(($VBITRATE / 8))
+
+ACSETTINGS="aac -ab 128k -g 50 -strict experimental"
+VCSETTINGS="h264 -maxrate 1024k -bufsize 4096k -profile:v high -level 4.0"
+VCSETTINGS_LOCAL="h264 -preset ultrafast -profile:v high -level 4.0"
 
 function printHelp {
     echo "./vitow_stream.sh t           # Only shows video with Mplayer."
@@ -21,6 +29,7 @@ function printHelp {
     echo "./vitow_stream.sh S + HH MM   # Idem to option 's' but opens FFmpeg output instead of using VITOW input."
     echo "./vitow_stream.sh y test      # Streams video with watermark, without countdown to the test live stream. [+ Mplayer]"
     echo "./vitow_stream.sh y           # Streams video with watermark, without countdown to the event live stream. [+ Mplayer]"
+    echo "./vitow_stream.sh i           # Streams the no-video still image."
 }
 
 if [ $# -lt 1 ]; then
@@ -55,14 +64,10 @@ case $1 in
 
         if [ $1 == "s" ]; then
             FILTER_COMPLEX="[1:v][2:v] overlay=[tmp]; [tmp][3:v] overlay=0:0"
-            OUTPUT1="-vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f flv $STREAM"
-            OUTPUT2=""
             LOCAL_PLAYER="mplayer"
         else
             FILTER_COMPLEX="[1:v][2:v] overlay=[tmp]; [tmp][3:v]overlay=[tmp2]; [tmp2]split=2[out1][out2]"
-            OUTPUT1="-map \"[out1]\" -map 0:a -vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f flv $STREAM"
-            OUTPUT2="-map \"[out2]\" -map 0:a -vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f mp4 udp://locahost:1234"
-            LOCAL_PLAYER="VLC (UDP stream)"
+            LOCAL_PLAYER="UDP stream"
         fi
         ;;
     y)
@@ -78,14 +83,18 @@ case $1 in
         STREAM_ID=$(cat $STREAM_ID_FILE)
         STREAM=rtmp://a.rtmp.youtube.com/live2/$STREAM_ID
         FILTER_COMPLEX="overlay=0:0"
-        OUTPUT1="-vcodec h264 -profile:v high -level 4.0 -acodec aac -ab 128k -g 50 -strict experimental -f flv $STREAM"
-        OUTPUT2=""
         LOCAL_PLAYER="mplayer"
         ;;
     t)
         # Do nothing.
         STREAM="(no stream)"
         LOCAL_PLAYER="mplayer"
+        ;;
+    i)
+        STREAM_ID_FILE=youtube_stream_event_camera_VITOW
+        STREAM_ID=$(cat $STREAM_ID_FILE)
+        STREAM=rtmp://a.rtmp.youtube.com/live2/$STREAM_ID
+        LOCAL_PLAYER="(no player)"
         ;;
     *)
         echo "Wrong mode '$1' selected. Options are t, s, S or y."
@@ -108,6 +117,8 @@ printf "┃  %20s │ %-80s ┃\n" "Local player" "$LOCAL_PLAYER"
 printf "┃  %20s │ %-80s ┃\n" "Filter complex" "$FILTER_COMPLEX"
 printf "┃  %20s │ %-80s ┃\n" "Watermark file" "$WATERMARK_PATH"
 printf "┃  %20s │ %-80s ┃\n" "Countdown file" "$COUNTDOWN_PATH"
+printf "┃  %20s │ %-80s ┃\n" "Still image file" "$NOVIDEO_PATH"
+printf "┃  %20s │ %6d bps (%5d B/s) %57s ┃\n" "Video stream bitrate" "$VBITRATE" "$PVRATE" " "
 if [ $1 == "t" ]; then
     printf "┃  %20s │ %-80s ┃\n" "Mode" "Test mode. Play video with mplayer."
 elif [ $1 == "S" ]; then
@@ -124,33 +135,58 @@ elif [ $1 == "y" ]; then
     else
         printf "┃  %20s │ %-80s ┃\n" "Mode" "Youtube test: event stream. Play with mplayer."
     fi
+elif [ $1 == "i" ]; then
+    printf "┃  %20s │ %-80s ┃\n" "Mode" "No-video RX. Streaming still image."
 fi
 printf "┗━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
 
 # exit
-
 case $1 in
     t)
         tail -f vitow_output | mplayer -fps 25 -framedrop -demuxer h264es -
         ;;
     s|S)
-        tail -f vitow_output | pv -L 56250 |                                                        \
-            ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero               \
-                    -i -                                                                            \
-                    -ss $COUNTDOWN_DELAY -i $COUNTDOWN_PATH                                         \
-                    -i $WATERMARK_PATH                                                              \
-                    -filter_complex "$FILTER_COMPLEX"                                               \
-                    $OUTPUT1                                                                        \
-                    $OUTPUT2
+        if [ $1 == "s" ]; then
+            tail -f vitow_output | tee >(mplayer -fps 25 -framedrop -demuxer h264es -) |            \
+                pv -L $PVRATE -q |                                                                  \
+                ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero           \
+                        -i -                                                                        \
+                        -ss $COUNTDOWN_DELAY -i $COUNTDOWN_PATH                                     \
+                        -i $WATERMARK_PATH                                                          \
+                            -filter_complex "$FILTER_COMPLEX"                                       \
+                            -vcodec $VCSETTINGS                                                     \
+                            -acodec $ACSETTINGS                                                     \
+                        -f flv $STREAM
+        else
+            tail -f vitow_output | pv -L $PVRATE -q |                                               \
+                ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero           \
+                        -i -                                                                        \
+                        -ss $COUNTDOWN_DELAY -i $COUNTDOWN_PATH                                     \
+                        -i $WATERMARK_PATH                                                          \
+                            -filter_complex "$FILTER_COMPLEX"                                       \
+                            -map '[out1]' -map 0:a -vcodec $VCSETTINGS -acodec $ACSETTINGS          \
+                                -f flv $STREAM                                                      \
+                            -map '[out2]' -map 0:a -vcodec $VCSETTINGS_LOCAL -acodec $ACSETTINGS    \
+                                -f mpegts udp://localhost:52001
+        fi
         ;;
     y)
-        tail -f vitow_output | pv -L 56250 |                                                        \
+        tail -f vitow_output | pv -L $PVRATE -q |                                                   \
             ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero               \
                     -i -                                                                            \
                     -i $WATERMARK_PATH                                                              \
-                    -filter_complex "$FILTER_COMPLEX"                                               \
-                    $OUTPUT1                                                                        \
-                    $OUTPUT2
+                        -filter_complex "$FILTER_COMPLEX"                                           \
+                        -vcodec $VCSETTINGS                                                         \
+                        -acodec $ACSETTINGS                                                         \
+                    -f flv $STREAM
+        ;;
+    i)
+        VCSETTINGS="h264"
+        ffmpeg  -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero               \
+                -loop 1 -i $NOVIDEO_PATH -r 5                                                  \
+                    -vcodec $VCSETTINGS                                                         \
+                    -acodec $ACSETTINGS                                                         \
+                -f flv $STREAM
         ;;
 esac
 
