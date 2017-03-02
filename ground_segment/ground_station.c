@@ -751,6 +751,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
 {
     int ret;
     int cnt = 0;
+    long timeout_cent_s = timeout/10;
     do{
         ret = readBytesUntil(fd, '\n', (char *) buffer, 52);
         if (ret <= 0){
@@ -759,7 +760,7 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
             *size = ret;
             return 0;
         }
-    }while(ret <= 0 && ++cnt < timeout);
+    }while(ret <= 0 && ++cnt < timeout_cent_s);
     if (*size != 0)
         return 0;
     else
@@ -818,7 +819,7 @@ int available(int fd)
 {
     int bytes_avail;
     /* wait for a millisecond */
-    usleep(1 * 1000);
+    usleep(10 * 1000);
     if (ioctl(fd, FIONREAD, &bytes_avail) == -1){
         printfe("Error while checking available bytes on UART\n");
         return -1;
@@ -895,15 +896,14 @@ void init_rotor_control (int fd)
         sleep(2);
         /* Recv the yack/nack */
         memset(buf, 0, sizeof(buf));
-        if ((ret = uart_read(fd, (unsigned char *) buf, &len, ROTORS_TIMEOUT)) == 0){
+        if ((ret = uart_read(fd, (unsigned char *) buf, &len, ROTORS_INIT_TIMEOUT)) == 0){
             buf[len - 1] = '\0';
-            printfd("init rotor: %s\n", buf);
             if (strcmp(buf, "IYACK") == 0) {
                 printfo("Rotors successfully initialized\n");
-                //return;
+                return;
             } else {
                 printfd("Unable to initialize the antenna rotors\n");
-                //return;
+                return;
             }
         }else{
             printfe("[Init rotor control] Error reading from UART\n");
