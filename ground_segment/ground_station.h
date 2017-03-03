@@ -40,7 +40,7 @@
 
 #define UPC_FILE_NAME       "upc_iridium_data.csv"
 #define UPC_WEB_SERVER      "https://dev.coderagora.com/iridium/iridium-data.csv"
-#define UPC_GET_DUTY_CYCLE  30
+#define UPC_GET_DUTY_CYCLE  5
 
 #define ROTORS_INIT_TIMEOUT 4 * 1000
 #define ROTORS_TIMEOUT      3 * 1000

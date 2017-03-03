@@ -362,11 +362,12 @@ void * dbupc_control(void * arg)
     bool have_data = false;
     UPCData data_aux;
     UPCData data;
+    UPCData last_valid_data;
 
     while(!gs_exit){
         /* Open the command for reading. */
         sprintf(wget, "wget -q -O - %s | tail -n5 > %s", UPC_WEB_SERVER, UPC_FILE_NAME);
-        system(wget); 
+        system(wget);
         fp = fopen(UPC_FILE_NAME, "r");
         if (fp != NULL){
             /* Read the output a line at a time - output it. */
@@ -374,8 +375,12 @@ void * dbupc_control(void * arg)
             while (fgets(line, sizeof(line)-1, fp) != NULL) {
                 comma_op = comma_parsing(line, sizeof(line), matches, (void *) &data_aux, 26);
                 if (comma_op == matches){
-                    memcpy(&data, &data_aux, sizeof(UPCData));
-                    have_data = true;
+                    if (memcmp(&last_valid_data, &data_aux, sizeof(UPCData)) == 0){
+                        have_data = false;
+                    }else{
+                        memcpy(&data, &data_aux, sizeof(UPCData));
+                        have_data = true;
+                    }
                     /* save this */
                 }else{
                     /* in case is not equal, break the while and return the last data as definitive */
@@ -391,6 +396,7 @@ void * dbupc_control(void * arg)
                 pthread_mutex_lock(&dbupc_mutex);
                 memcpy(&guided_pos, &data, sizeof(UPCData));
                 pthread_mutex_unlock(&dbupc_mutex);
+                memcpy(&last_valid_data, &data, sizeof(UPCData));
             }
         }else{
             printfe("[DBUPC Control] Error openning CSV file\n");
@@ -694,6 +700,7 @@ time_t utc_time_to_epoch(const char * timestamp)
     return epoch;
 }
 
+#ifdef INPUT_TIMEOUT_OLD_UART
 /***********************************************************************************************//**
  * Rteruns the value corresponding to a call to a select of a file descriptor fd using a timeout
  **************************************************************************************************/
@@ -712,7 +719,7 @@ static int input_timeout(int fd, long long microsec)
     /* select returns 0 if timeout, 1 if input available, -1 if error. */
     return (select (FD_SETSIZE, &set, NULL, NULL, &timeout));
 }
-
+#endif
 
 /***********************************************************************************************//**
  * Performs a write to uart interface after flushing the uart buffer
@@ -761,29 +768,7 @@ int readBytesUntil(int fd, char to_find, char * buffer, int max_size)
     return 0;
 }
 
-int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
-{
-    int ret;
-    int cnt = 0;
-    long timeout_cent_s = timeout/10;
-    do{
-        ret = readBytesUntil(fd, '\n', (char *) buffer, 52);
-        if (ret <= 0){
-            *size = 0;
-            /* Delay and try again */
-            usleep(10 * 1000);
-        }else{
-            *size = ret;
-            return 0;
-        }
-    }while(ret <= 0 && ++cnt < timeout_cent_s);
-    if (*size != 0)
-        return 0;
-    else
-        return ret;
-}
-
-#if 0
+#ifdef INPUT_TIMEOUT_OLD_UART
 int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
 {
     int r_op, sel_op;
@@ -829,6 +814,30 @@ int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
     }
     return 0;
 }
+#else 
+
+int uart_read(int fd, unsigned char *buffer, int * size, long long timeout)
+{
+    int ret;
+    int cnt = 0;
+    long timeout_cent_s = timeout/10;
+    do{
+        ret = readBytesUntil(fd, '\n', (char *) buffer, 52);
+        if (ret <= 0){
+            *size = 0;
+            /* Delay and try again */
+            usleep(10 * 1000);
+        }else{
+            *size = ret;
+            return 0;
+        }
+    }while(ret <= 0 && ++cnt < timeout_cent_s);
+    if (*size != 0)
+        return 0;
+    else
+        return ret;
+}
+
 #endif 
 
 int available(int fd)
