@@ -19,7 +19,7 @@ VBITRATE=450000
 PVRATE=$(($VBITRATE / 8))
 
 ACSETTINGS="aac -ab 128k -g 50 -strict experimental"
-VCSETTINGS="h264 -maxrate 1024k -bufsize 4096k -profile:v high -level 4.0"
+VCSETTINGS="h264 -profile:v high -level 4.0"
 VCSETTINGS_LOCAL="h264 -preset ultrafast -profile:v high -level 4.0"
 
 function printHelp {
